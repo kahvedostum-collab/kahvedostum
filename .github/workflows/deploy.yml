@@ -9,38 +9,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Copy project to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          source: "."
-          target: "/home/${{ secrets.SSH_USER }}/kahvedostum"
-
-      - name: Restart Docker on server
+      - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          port: 22
           script: |
-            cd ~/kahvedostum
+            set -e
 
-            echo "Stopping existing container..."
+            echo ">>> Go to project directory"
+            cd /opt/kahvedostum
+
+            echo ">>> Pull latest code"
+            git pull
+
+            echo ">>> Stop & remove old container"
             docker stop kahvedostum-frontend || true
             docker rm kahvedostum-frontend || true
 
-            echo "Removing old image..."
+            echo ">>> Remove old image"
             docker rmi kahvedostum-frontend || true
 
-            echo "Building new image..."
+            echo ">>> Build new image"
             docker build -t kahvedostum-frontend .
 
-            echo "Starting new container..."
+            echo ">>> Start new container"
             docker run -d -p 8080:80 --name kahvedostum-frontend kahvedostum-frontend
+
+            echo ">>> Deployment completed"

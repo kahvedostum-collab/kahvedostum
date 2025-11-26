@@ -1,5 +1,4 @@
-import React, { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router";
+import React from "react";
 
 import Home from "@/pages/Home";
 import Login from "@/pages/authentication/Login";

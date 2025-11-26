@@ -1,16 +1,13 @@
-import { useAuth } from "@/contexts/AuthContext";
-import React, { useEffect } from "react";
+import React from "react";
+import Header from "@/components/layout/Header";
 
 const DefaultLayout = ({ children }) => {
-  const { isLogged, logout } = useAuth();
-
-  useEffect(() => {
-    if (!isLogged) {
-      logout();
-    }
-  }, [isLogged]);
-
-  return <div className="min-h-screen min-w-full flex">{children}</div>;
+  return (
+    <div className="min-h-screen min-w-full flex flex-col bg-white dark:bg-zinc-950 transition-colors duration-300">
+      <Header />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
 };
 
 export default DefaultLayout;

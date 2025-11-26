@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,7 +29,7 @@ dist-ssr
 *.sw?
 
 .claude
-.github
 .dockerignore
 .mcp.json
 .CLAUDE.md
+CLAUDE.md

@@ -1,0 +1,200 @@
+{
+  "header": {
+    "appName": "Coffee Buddy",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "language": {
+    "title": "Language",
+    "tr": "Türkçe",
+    "en": "English",
+    "de": "Deutsch",
+    "fr": "Français",
+    "es": "Español",
+    "it": "Italiano",
+    "pt": "Português",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ar": "العربية"
+  },
+  "theme": {
+    "title": "Theme",
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "system": "System"
+  },
+  "settings": {
+    "title": "Settings"
+  },
+  "auth": {
+    "appName": "Coffee Buddy",
+    "tagline": "The Meeting Point for Coffee Lovers",
+    "taglineSignup": "Join the Coffee Family",
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account and continue enjoying coffee",
+      "email": "Email",
+      "emailPlaceholder": "example@coffeebuddy.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot Password?",
+      "submit": "Sign In",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signupLink": "Sign Up Now",
+      "success": "Successfully signed in! Redirecting..."
+    },
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Join the coffee lovers community for free",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "email": "Email",
+      "emailPlaceholder": "example@coffeebuddy.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "Must be at least 8 characters",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign In",
+      "passwordMismatch": "Passwords do not match!",
+      "acceptTerms": "Please accept the terms of service!"
+    },
+    "footer": {
+      "copyright": "© 2025 Coffee Buddy. All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Coffee Lover",
+    "hello": "Hello",
+    "welcomeMessage": "Have a coffee-filled day!",
+    "totalCoffee": "Total Coffee",
+    "thisMonth": "This month",
+    "favoriteCoffee": "Favorite Coffee",
+    "mostPreferred": "Most preferred",
+    "points": "Points",
+    "totalPoints": "Total points earned",
+    "coffeeFriends": "Coffee Friends",
+    "friendsAndMessages": "Your friends and messages",
+    "friends": "friends",
+    "newRequest": "new request",
+    "monthlyCoffee": "Monthly Coffee Consumption",
+    "last6Months": "Last 6 months data",
+    "coffeeTypes": "Coffee Types",
+    "distribution": "Consumption distribution"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "qrScanner": {
+    "title": "Scan QR Code",
+    "scanQR": "Scan QR Code",
+    "instruction": "Point your camera at the QR code",
+    "loading": "Loading camera...",
+    "success": "QR Code Successfully Scanned!",
+    "helpTitle": "Tips:",
+    "helpTip1": "Keep the QR code in a well-lit environment",
+    "helpTip2": "Hold the camera steady",
+    "helpTip3": "Make sure the QR code is fully visible"
+  },
+  "friends": {
+    "page": {
+      "title": "My Coffee Friends",
+      "friendCount": "{{count}} friends",
+      "unreadMessages": "{{count}} unread messages",
+      "allMessagesRead": "All messages read",
+      "addFriend": "Add Friend"
+    },
+    "tabs": {
+      "friends": "Friends",
+      "requests": "Requests",
+      "messages": "Messages"
+    },
+    "sections": {
+      "incomingTitle": "Incoming Requests",
+      "incomingDesc": "People who want to add you as a friend",
+      "outgoingTitle": "Sent Requests",
+      "outgoingDesc": "Your pending friend requests",
+      "messagesTitle": "Your Messages",
+      "messagesDesc": "Select a conversation from the list to start chatting"
+    },
+    "empty": {
+      "noFriends": "No friends yet",
+      "noFriendsDesc": "Start sharing your coffee experiences by adding new friends!",
+      "addFirstFriend": "Add Your First Friend",
+      "noMessages": "No messages yet",
+      "noMessagesDesc": "Start a conversation by messaging your friends",
+      "noIncoming": "No incoming requests",
+      "noIncomingDesc": "No pending friend requests",
+      "noOutgoing": "No sent requests",
+      "noOutgoingDesc": "You haven't sent any friend requests yet",
+      "noSearchResults": "User not found",
+      "noSearchResultsDesc": "Try a different search term or check the username",
+      "searchPrompt": "Search Friends",
+      "searchPromptDesc": "Start searching by entering a username or email"
+    },
+    "chat": {
+      "startChat": "Start Chatting",
+      "noMessagesYet": "No messages yet. Send the first one!",
+      "online": "Online",
+      "offline": "Offline",
+      "inputPlaceholder": "Type your message...",
+      "sending": "Sending",
+      "sent": "Sent",
+      "read": "Read",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "sendError": "Failed to send message",
+      "noMessage": "No message"
+    },
+    "card": {
+      "badge": "Coffee Buddy",
+      "message": "Message",
+      "sendMessage": "Send Message",
+      "removeFriend": "Remove Friend",
+      "removeFriendDesc": "Are you sure you want to remove {{name}} from your friends list? This action cannot be undone.",
+      "cancel": "Cancel",
+      "remove": "Remove",
+      "removing": "Removing...",
+      "removedSuccess": "Friend removed",
+      "unknownUser": "Unknown"
+    },
+    "requests": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "cancelRequest": "Cancel",
+      "acceptedSuccess": "Friend request accepted! 🎉",
+      "rejectedInfo": "Friend request rejected",
+      "cancelledInfo": "Friend request cancelled"
+    },
+    "addFriend": {
+      "title": "Add Friend",
+      "description": "Search by username or email",
+      "searchPlaceholder": "Search user...",
+      "addButton": "Add",
+      "searchError": "An error occurred while searching",
+      "requestSentSuccess": "Friend request sent to {{name}}! 🎉",
+      "requestSentError": "Failed to send request"
+    },
+    "time": {
+      "now": "Now",
+      "minutesShort": "{{count}}m",
+      "daysShort": "{{count}}d",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} hours ago",
+      "daysAgo": "{{count}} days ago"
+    }
+  }
+}

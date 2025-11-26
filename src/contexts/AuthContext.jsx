@@ -1,71 +1,70 @@
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { resetInitialState, setIsLogged } from "@/slice/KDSlice";
+import { resetInitialState, setIsLogged, setIsInitialized } from "@/slice/KDSlice";
 import { toast } from "react-toastify";
+import {
+  AUTH_EVENTS,
+  isAuthenticated,
+  clearTokens,
+  subscribeToAuthEvents,
+} from "@/services/authService";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLogged, isLoading } = useSelector(
+  const { isLogged, isLoading, isInitialized } = useSelector(
     (state) => state.kahvedostumslice
   );
 
-  // Token kontrolü - uygulama yüklendiğinde
+  // İlk yükleme - Token kontrolü (bir kez çalışır)
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const refreshToken = localStorage.getItem("refreshToken");
+    const hasToken = isAuthenticated();
+    dispatch(setIsLogged(hasToken));
+    dispatch(setIsInitialized(true));
+  }, [dispatch]);
 
-    if (accessToken && refreshToken && !isLogged) {
+  // authService event'lerine subscribe ol
+  useEffect(() => {
+    const unsubLogin = subscribeToAuthEvents(AUTH_EVENTS.LOGIN, () => {
       dispatch(setIsLogged(true));
-    } else if (!accessToken && isLogged) {
-      // Token silinmişse logout yap
+    });
+
+    const unsubLogout = subscribeToAuthEvents(AUTH_EVENTS.LOGOUT, () => {
       dispatch(resetInitialState());
       navigate("/login");
-    }
-  }, [dispatch, isLogged, navigate]);
+    });
 
-  // localStorage değişikliklerini dinle
+    return () => {
+      unsubLogin();
+      unsubLogout();
+    };
+  }, [dispatch, navigate]);
+
+  // localStorage değişikliklerini dinle (farklı tab/window için)
   useEffect(() => {
     const handleStorageChange = (e) => {
-      // accessToken silindiğinde veya değiştiğinde
       if (e.key === "accessToken" && !e.newValue && isLogged) {
         dispatch(resetInitialState());
         navigate("/login");
       }
     };
 
-    // storage event'ini dinle (farklı tab/window için)
     window.addEventListener("storage", handleStorageChange);
-
-    // Aynı tab için interval ile kontrol
-    const intervalId = setInterval(() => {
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken && isLogged) {
-        dispatch(resetInitialState());
-        navigate("/login");
-      }
-    }, 1000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(intervalId);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [dispatch, isLogged, navigate]);
 
-  const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    dispatch(resetInitialState());
+  const logout = useCallback(() => {
+    clearTokens();
     toast.success("Başarıyla çıkış yapıldı.");
-    navigate("/login");
-  };
+  }, []);
 
   const value = {
     isLogged,
-    isLoading,
+    isLoading: isLoading || !isInitialized,
+    isInitialized,
     logout,
   };
 

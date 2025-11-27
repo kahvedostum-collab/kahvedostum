@@ -1,4 +1,5 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 
 import Home from "@/pages/Home";
 import Login from "@/pages/authentication/Login";
@@ -15,6 +16,8 @@ import EmptyLayout from "@/layout/EmptyLayout";
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const CoffeeFriends = lazy(() => import("@/pages/friends/CoffeeFriends"));
 const About = lazy(() => import("@/pages/others/About"));
+
+
 
 // Loading component
 const PageLoader = () => (

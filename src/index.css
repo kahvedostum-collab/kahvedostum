@@ -1,26 +1,22 @@
 @import "tailwindcss";
 
+/* Font-size kuralları @layer base DIŞINDA - Tailwind'den sonra yüklenir */
+html {
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  font-family: Roboto, sans-serif;
+}
 
 @layer base {
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-  }
-
-  html {
-    font-size: 62.5%;
-    /* 10px base (16px × 0.625) */
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    font-size: 1.6rem;
-    /* 20px */
-    min-height: 100vh;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   button,
@@ -51,11 +47,11 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --chart-1: 30 80% 55%;
+  --chart-2: 25 85% 60%;
+  --chart-3: 35 90% 65%;
+  --chart-4: 20 90% 50%;
+  --chart-5: 40 85% 70%;
   --radius: 0.625rem;
 }
 
@@ -79,11 +75,11 @@
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
   --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --chart-1: 35 85% 60%;
+  --chart-2: 30 80% 55%;
+  --chart-3: 40 85% 50%;
+  --chart-4: 25 90% 65%;
+  --chart-5: 45 80% 70%;
 }
 
 @theme {

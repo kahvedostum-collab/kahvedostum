@@ -1,0 +1,200 @@
+{
+  "header": {
+    "appName": "Kahve Dostum",
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "logout": "Çıkış Yap"
+  },
+  "language": {
+    "title": "Dil",
+    "tr": "Türkçe",
+    "en": "English",
+    "de": "Deutsch",
+    "fr": "Français",
+    "es": "Español",
+    "it": "Italiano",
+    "pt": "Português",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ar": "العربية"
+  },
+  "theme": {
+    "title": "Tema",
+    "light": "Açık Mod",
+    "dark": "Koyu Mod",
+    "system": "Sistem"
+  },
+  "settings": {
+    "title": "Ayarlar"
+  },
+  "auth": {
+    "appName": "Kahvedostum",
+    "tagline": "Kahve Tutkunlarının Buluşma Noktası",
+    "taglineSignup": "Kahve Ailesine Katılın",
+    "login": {
+      "title": "Hoş Geldiniz",
+      "subtitle": "Hesabınıza giriş yapın ve kahve keyfine devam edin",
+      "email": "E-posta",
+      "emailPlaceholder": "ornek@kahvedostum.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Şifremi Unuttum?",
+      "submit": "Giriş Yap",
+      "submitting": "Giriş yapılıyor...",
+      "noAccount": "Hesabınız yok mu?",
+      "signupLink": "Hemen Kayıt Olun",
+      "success": "Başarıyla giriş yapıldı! Yönlendiriliyorsunuz..."
+    },
+    "signup": {
+      "title": "Hesap Oluşturun",
+      "subtitle": "Kahve tutkunları topluluğuna ücretsiz katılın",
+      "firstName": "Ad",
+      "firstNamePlaceholder": "Ahmet",
+      "lastName": "Soyad",
+      "lastNamePlaceholder": "Yılmaz",
+      "email": "E-posta",
+      "emailPlaceholder": "ornek@kahvedostum.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "En az 8 karakter olmalıdır",
+      "confirmPassword": "Şifre Tekrar",
+      "submit": "Hesap Oluştur",
+      "submitting": "Hesap oluşturuluyor...",
+      "hasAccount": "Zaten hesabınız var mı?",
+      "loginLink": "Giriş Yapın",
+      "passwordMismatch": "Şifreler eşleşmiyor!",
+      "acceptTerms": "Lütfen kullanım koşullarını kabul edin!"
+    },
+    "footer": {
+      "copyright": "© 2025 Kahvedostum. Tüm hakları saklıdır.",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Koşulları"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Kahve Sever",
+    "hello": "Merhaba",
+    "welcomeMessage": "Kahve dolu bir gün dileriz!",
+    "totalCoffee": "Toplam Kahve",
+    "thisMonth": "Bu ay",
+    "favoriteCoffee": "Favori Kahve",
+    "mostPreferred": "En çok tercih edilen",
+    "points": "Puan",
+    "totalPoints": "Toplam kazanılan puan",
+    "coffeeFriends": "Kahve Arkadaşları",
+    "friendsAndMessages": "Arkadaşlarınız ve mesajlarınız",
+    "friends": "arkadaş",
+    "newRequest": "yeni istek",
+    "monthlyCoffee": "Aylık Kahve Tüketimi",
+    "last6Months": "Son 6 ayın verileri",
+    "coffeeTypes": "Kahve Türleri",
+    "distribution": "Tüketim dağılımı"
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "confirm": "Onayla"
+  },
+  "qrScanner": {
+    "title": "QR Kod Okut",
+    "scanQR": "QR Kod Okut",
+    "instruction": "Kameranızı QR koda doğrultun",
+    "loading": "Kamera yükleniyor...",
+    "success": "QR Kod Başarıyla Okundu!",
+    "helpTitle": "İpuçları:",
+    "helpTip1": "QR kodu iyi aydınlatılmış bir ortamda tutun",
+    "helpTip2": "Kamerayı sabit tutun",
+    "helpTip3": "QR kodun tamamen görünür olduğundan emin olun"
+  },
+  "friends": {
+    "page": {
+      "title": "Kahve Arkadaşlarım",
+      "friendCount": "{{count}} arkadaş",
+      "unreadMessages": "{{count}} okunmamış mesaj",
+      "allMessagesRead": "Tüm mesajlar okundu",
+      "addFriend": "Arkadaş Ekle"
+    },
+    "tabs": {
+      "friends": "Arkadaşlar",
+      "requests": "İstekler",
+      "messages": "Mesajlar"
+    },
+    "sections": {
+      "incomingTitle": "Gelen İstekler",
+      "incomingDesc": "Sizi arkadaş olarak eklemek isteyenler",
+      "outgoingTitle": "Gönderilen İstekler",
+      "outgoingDesc": "Onay bekleyen arkadaşlık istekleriniz",
+      "messagesTitle": "Mesajlarınız",
+      "messagesDesc": "Sohbet başlatmak için soldaki listeden bir konuşma seçin"
+    },
+    "empty": {
+      "noFriends": "Henüz arkadaşınız yok",
+      "noFriendsDesc": "Yeni arkadaşlar ekleyerek kahve deneyimlerinizi paylaşmaya başlayın!",
+      "addFirstFriend": "İlk Arkadaşını Ekle",
+      "noMessages": "Henüz mesajınız yok",
+      "noMessagesDesc": "Arkadaşlarınıza mesaj göndererek sohbet başlatın",
+      "noIncoming": "Gelen istek yok",
+      "noIncomingDesc": "Bekleyen arkadaşlık isteği bulunmuyor",
+      "noOutgoing": "Gönderilen istek yok",
+      "noOutgoingDesc": "Henüz kimseye arkadaşlık isteği göndermediniz",
+      "noSearchResults": "Kullanıcı bulunamadı",
+      "noSearchResultsDesc": "Farklı bir arama terimi deneyin veya kullanıcı adını kontrol edin",
+      "searchPrompt": "Arkadaş Ara",
+      "searchPromptDesc": "Kullanıcı adı veya e-posta girerek arkadaş aramaya başlayın"
+    },
+    "chat": {
+      "startChat": "Sohbete Başlayın",
+      "noMessagesYet": "Henüz mesaj yok. İlk mesajı siz gönderin!",
+      "online": "Çevrimiçi",
+      "offline": "Çevrimdışı",
+      "inputPlaceholder": "Mesajınızı yazın...",
+      "sending": "Gönderiliyor",
+      "sent": "Gönderildi",
+      "read": "Okundu",
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "sendError": "Mesaj gönderilemedi",
+      "noMessage": "Mesaj yok"
+    },
+    "card": {
+      "badge": "Kahve Dostu",
+      "message": "Mesaj",
+      "sendMessage": "Mesaj Gönder",
+      "removeFriend": "Arkadaşlıktan Çıkar",
+      "removeFriendDesc": "{{name}} adlı kişiyi arkadaş listenizden çıkarmak istediğinize emin misiniz? Bu işlem geri alınamaz.",
+      "cancel": "Vazgeç",
+      "remove": "Çıkar",
+      "removing": "Çıkarılıyor...",
+      "removedSuccess": "Arkadaşlıktan çıkarıldı",
+      "unknownUser": "Bilinmeyen"
+    },
+    "requests": {
+      "accept": "Kabul Et",
+      "reject": "Reddet",
+      "cancelRequest": "İptal Et",
+      "acceptedSuccess": "Arkadaşlık isteği kabul edildi! 🎉",
+      "rejectedInfo": "Arkadaşlık isteği reddedildi",
+      "cancelledInfo": "Arkadaşlık isteği iptal edildi"
+    },
+    "addFriend": {
+      "title": "Arkadaş Ekle",
+      "description": "Kullanıcı adı veya e-posta ile arayın",
+      "searchPlaceholder": "Kullanıcı ara...",
+      "addButton": "Ekle",
+      "searchError": "Arama yapılırken bir hata oluştu",
+      "requestSentSuccess": "{{name}}'e arkadaşlık isteği gönderildi! 🎉",
+      "requestSentError": "İstek gönderilemedi"
+    },
+    "time": {
+      "now": "Şimdi",
+      "minutesShort": "{{count}}dk",
+      "daysShort": "{{count}}g",
+      "minutesAgo": "{{count}} dk önce",
+      "hoursAgo": "{{count}} saat önce",
+      "daysAgo": "{{count}} gün önce"
+    }
+  }
+}

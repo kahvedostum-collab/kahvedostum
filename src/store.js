@@ -7,9 +7,4 @@ const store = configureStore({
   },
 });
 
-// Make store available globally for axios interceptor
-if (typeof window !== 'undefined') {
-  window.store = store;
-}
-
 export default store;

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import PropTypes from "prop-types";
 import {
   ArrowLeft,
   Send,
@@ -11,6 +12,7 @@ import {
   MessageSquare,
   MoreVertical,
 } from "lucide-react";
+import { formatTime as formatTimeUtil, formatDateLong } from "@/utils/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shacdn/avatar";
 import { Button } from "@/components/shacdn/button";
 import { Input } from "@/components/shacdn/input";
@@ -41,7 +43,8 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
   const inputRef = useRef(null);
 
   const otherUser = conversation?.otherUser || conversation?.participant;
-  const isOnline = otherUser?.isOnline ?? Math.random() > 0.5;
+  // Fixed: Use actual online status from API, default to false instead of random
+  const isOnline = otherUser?.isOnline ?? false;
 
   useEffect(() => {
     if (conversation?.id) {
@@ -50,23 +53,26 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
     }
   }, [conversation?.id, dispatch]);
 
-  useEffect(() => {
-    // Scroll to bottom when messages change
+  // Memoized scroll to bottom function
+  const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
       const scrollElement = scrollRef.current.querySelector(
         "[data-radix-scroll-area-viewport]"
       );
       if (scrollElement) {
-        // Use setTimeout to ensure DOM has updated
-        setTimeout(() => {
-          scrollElement.scrollTo({
-            top: scrollElement.scrollHeight,
-            behavior: "smooth",
-          });
-        }, 100);
+        scrollElement.scrollTo({
+          top: scrollElement.scrollHeight,
+          behavior: "smooth",
+        });
       }
     }
-  }, [activeMessages]);
+  }, []);
+
+  // Debounced scroll effect - only triggers once when messages change
+  useEffect(() => {
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [activeMessages.length, scrollToBottom]);
 
   useEffect(() => {
     // Auto-focus input on mount
@@ -85,13 +91,8 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
       .slice(0, 2);
   };
 
-  const formatTime = (dateString) => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleTimeString("tr-TR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // Use locale utility for consistent formatting
+  const formatTime = (dateString) => formatTimeUtil(dateString);
 
   const formatDateGroup = (dateString) => {
     if (!dateString) return "";
@@ -102,7 +103,7 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
 
     if (date.toDateString() === today.toDateString()) return t('friends.chat.today');
     if (date.toDateString() === yesterday.toDateString()) return t('friends.chat.yesterday');
-    return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
+    return formatDateLong(dateString);
   };
 
   // Group messages by date
@@ -158,6 +159,7 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
             size="icon"
             onClick={onBack}
             className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+            aria-label={t("common.back") || "Geri"}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -191,6 +193,7 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
           variant="ghost"
           size="icon"
           className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
+          aria-label={t("common.moreOptions") || "Daha fazla seçenek"}
         >
           <MoreVertical className="h-5 w-5" />
         </Button>
@@ -261,7 +264,10 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
                           <div className="w-8">
                             {showAvatar && (
                               <Avatar className="h-8 w-8 border border-amber-200">
-                                <AvatarImage src={otherUser?.avatarUrl} />
+                                <AvatarImage
+                                  src={otherUser?.avatarUrl}
+                                  alt={`${otherUser?.displayName || otherUser?.userName} profil fotoğrafı`}
+                                />
                                 <AvatarFallback className="bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs">
                                   {getInitials(
                                     otherUser?.displayName ||
@@ -361,6 +367,33 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
       </div>
     </div>
   );
+};
+
+ChatView.propTypes = {
+  conversation: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    otherUser: PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      displayName: PropTypes.string,
+      userName: PropTypes.string,
+      avatarUrl: PropTypes.string,
+      isOnline: PropTypes.bool,
+    }),
+    participant: PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      displayName: PropTypes.string,
+      userName: PropTypes.string,
+      avatarUrl: PropTypes.string,
+      isOnline: PropTypes.bool,
+    }),
+  }),
+  onBack: PropTypes.func.isRequired,
+  fullScreen: PropTypes.bool,
+};
+
+ChatView.defaultProps = {
+  conversation: null,
+  fullScreen: false,
 };
 
 export default ChatView;

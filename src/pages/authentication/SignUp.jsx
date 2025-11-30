@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/shacdn/button";
 import { Input } from "@/components/shacdn/input";
 import { Label } from "@/components/shacdn/label";
@@ -24,6 +25,8 @@ const SignUp = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -162,17 +165,31 @@ const SignUp = () => {
               >
                 {t("auth.signup.password")}
               </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder={t("auth.signup.passwordPlaceholder")}
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={8}
-                className="h-11 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("auth.signup.passwordPlaceholder")}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  className="h-11 pr-10 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
                 {t("auth.signup.passwordHint")}
               </p>
@@ -185,17 +202,31 @@ const SignUp = () => {
               >
                 {t("auth.signup.confirmPassword")}
               </Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder={t("auth.signup.passwordPlaceholder")}
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                minLength={8}
-                className="h-11 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder={t("auth.signup.passwordPlaceholder")}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  className="h-11 pr-10 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button

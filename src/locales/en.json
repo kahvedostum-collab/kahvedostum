@@ -65,6 +65,30 @@
       "passwordMismatch": "Passwords do not match!",
       "acceptTerms": "Please accept the terms of service!"
     },
+    "forgotPassword": {
+      "title": "Forgot Password?",
+      "subtitle": "Don't worry, we'll send you a reset link",
+      "resetTitle": "Set New Password",
+      "resetSubtitle": "Create a new password for your account",
+      "identifier": "Email or Username",
+      "identifierPlaceholder": "example@mail.com or username",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "Must be at least 8 characters",
+      "sendLink": "Send Reset Link",
+      "sending": "Sending...",
+      "updatePassword": "Update Password",
+      "updating": "Updating...",
+      "backToLogin": "Back to login",
+      "emailSent": "Reset link sent to your email!",
+      "passwordUpdated": "Password updated successfully!",
+      "emptyIdentifier": "Please enter email or username",
+      "userNotFound": "No user found with this information",
+      "passwordMismatch": "Passwords do not match!",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "invalidToken": "Reset link is invalid or expired"
+    },
     "footer": {
       "copyright": "© 2025 Coffee Buddy. All rights reserved.",
       "privacy": "Privacy Policy",
@@ -96,7 +120,9 @@
     "error": "An error occurred",
     "save": "Save",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "back": "Back",
+    "moreOptions": "More options"
   },
   "qrScanner": {
     "title": "Scan QR Code",
@@ -108,6 +134,85 @@
     "helpTip1": "Keep the QR code in a well-lit environment",
     "helpTip2": "Hold the camera steady",
     "helpTip3": "Make sure the QR code is fully visible"
+  },
+  "profile": {
+    "title": "My Profile",
+    "editProfile": "Edit Profile",
+    "changeAvatar": "Change Profile Photo",
+    "memberSince": "Member since",
+    "avatarEditor": {
+      "title": "Edit Profile Photo",
+      "selectImage": "Select Photo",
+      "dragOrClick": "Drag or click",
+      "save": "Save",
+      "cancel": "Cancel",
+      "cropHint": "Adjust the circular area"
+    },
+    "stats": {
+      "totalCoffee": "Total Coffee",
+      "friends": "Friends",
+      "points": "Points"
+    },
+    "tabs": {
+      "info": "Profile Info",
+      "settings": "Account Settings",
+      "security": "Security"
+    },
+    "info": {
+      "description": "View and edit your profile information",
+      "displayName": "Full Name",
+      "userName": "Username",
+      "cannotChange": "cannot be changed",
+      "email": "Email",
+      "bio": "About Me",
+      "bioPlaceholder": "Tell us about yourself...",
+      "noBio": "No information added yet",
+      "favoriteCoffee": "Favorite Coffee",
+      "selectCoffee": "Select coffee",
+      "location": "Location",
+      "locationPlaceholder": "City, Country",
+      "noLocation": "Location not specified",
+      "save": "Save Changes"
+    },
+    "settings": {
+      "description": "Manage your app preferences",
+      "language": "Language",
+      "languageDesc": "Choose app language",
+      "theme": "Theme",
+      "themeDesc": "Choose appearance theme",
+      "notifications": "Notifications",
+      "notificationsDesc": "Manage your notification preferences",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive important updates via email",
+      "pushNotifications": "Push Notifications",
+      "pushNotificationsDesc": "Receive instant notifications",
+      "friendRequestNotifications": "Friend Requests",
+      "friendRequestNotificationsDesc": "Get notified of new friend requests",
+      "messageNotifications": "Message Notifications",
+      "messageNotificationsDesc": "Get notified of new messages"
+    },
+    "security": {
+      "changePassword": "Change Password",
+      "changePasswordDesc": "Change your password regularly for account security",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updatePassword": "Update Password",
+      "twoFactor": "Two-Factor Authentication",
+      "twoFactorDesc": "Add an extra layer of security to your account",
+      "twoFactorSetup": "Scan the QR code to enable two-factor authentication",
+      "activeSessions": "Active Sessions",
+      "activeSessionsDesc": "Manage devices logged into your account",
+      "currentSession": "This Device",
+      "endSession": "End Session",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDesc": "These actions cannot be undone",
+      "deleteAccount": "Delete Account",
+      "deleteWarning": "This action cannot be undone. All your data will be permanently deleted.",
+      "deleteConfirmTitle": "Are you sure you want to delete your account?",
+      "deleteConfirmDesc": "This action cannot be undone. All your coffee history, friends, and points will be permanently deleted.",
+      "confirmDelete": "Yes, Delete My Account"
+    }
   },
   "friends": {
     "page": {

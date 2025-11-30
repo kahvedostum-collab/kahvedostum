@@ -1,5 +1,6 @@
 import { Users, UserPlus, Coffee } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 import { Skeleton } from '@/components/shacdn/skeleton';
 import { Button } from '@/components/shacdn/button';
 import FriendCard from './FriendCard';
@@ -74,6 +75,29 @@ const FriendsList = ({ friends, isLoading, onMessageClick, onAddFriend }) => {
       ))}
     </div>
   );
+};
+
+FriendsList.propTypes = {
+  friends: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      userId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      displayName: PropTypes.string,
+      userName: PropTypes.string,
+      avatarUrl: PropTypes.string,
+      isOnline: PropTypes.bool,
+    })
+  ),
+  isLoading: PropTypes.bool,
+  onMessageClick: PropTypes.func,
+  onAddFriend: PropTypes.func,
+};
+
+FriendsList.defaultProps = {
+  friends: [],
+  isLoading: false,
+  onMessageClick: null,
+  onAddFriend: null,
 };
 
 export default FriendsList;

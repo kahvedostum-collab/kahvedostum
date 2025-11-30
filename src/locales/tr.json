@@ -65,6 +65,30 @@
       "passwordMismatch": "Şifreler eşleşmiyor!",
       "acceptTerms": "Lütfen kullanım koşullarını kabul edin!"
     },
+    "forgotPassword": {
+      "title": "Şifreni mi Unuttun?",
+      "subtitle": "Endişelenme, sıfırlama linki göndereceğiz",
+      "resetTitle": "Yeni Şifre Belirle",
+      "resetSubtitle": "Hesabın için yeni bir şifre oluştur",
+      "identifier": "E-posta veya Kullanıcı Adı",
+      "identifierPlaceholder": "ornek@mail.com veya kullaniciadi",
+      "newPassword": "Yeni Şifre",
+      "confirmPassword": "Şifre Tekrar",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "En az 8 karakter olmalıdır",
+      "sendLink": "Sıfırlama Linki Gönder",
+      "sending": "Gönderiliyor...",
+      "updatePassword": "Şifreyi Güncelle",
+      "updating": "Güncelleniyor...",
+      "backToLogin": "Giriş sayfasına dön",
+      "emailSent": "Sıfırlama linki e-posta adresinize gönderildi!",
+      "passwordUpdated": "Şifreniz başarıyla güncellendi!",
+      "emptyIdentifier": "E-posta veya kullanıcı adı girin",
+      "userNotFound": "Bu bilgilerle eşleşen kullanıcı bulunamadı",
+      "passwordMismatch": "Şifreler eşleşmiyor!",
+      "passwordTooShort": "Şifre en az 8 karakter olmalıdır",
+      "invalidToken": "Sıfırlama linki geçersiz veya süresi dolmuş"
+    },
     "footer": {
       "copyright": "© 2025 Kahvedostum. Tüm hakları saklıdır.",
       "privacy": "Gizlilik Politikası",
@@ -96,7 +120,9 @@
     "error": "Bir hata oluştu",
     "save": "Kaydet",
     "cancel": "İptal",
-    "confirm": "Onayla"
+    "confirm": "Onayla",
+    "back": "Geri",
+    "moreOptions": "Daha fazla seçenek"
   },
   "qrScanner": {
     "title": "QR Kod Okut",
@@ -108,6 +134,85 @@
     "helpTip1": "QR kodu iyi aydınlatılmış bir ortamda tutun",
     "helpTip2": "Kamerayı sabit tutun",
     "helpTip3": "QR kodun tamamen görünür olduğundan emin olun"
+  },
+  "profile": {
+    "title": "Profilim",
+    "editProfile": "Profili Düzenle",
+    "changeAvatar": "Profil Fotoğrafını Değiştir",
+    "memberSince": "Üyelik",
+    "avatarEditor": {
+      "title": "Profil Fotoğrafı Düzenle",
+      "selectImage": "Fotoğraf Seç",
+      "dragOrClick": "Sürükle veya tıkla",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "cropHint": "Dairesel alanı ayarlayın"
+    },
+    "stats": {
+      "totalCoffee": "Toplam Kahve",
+      "friends": "Arkadaş",
+      "points": "Puan"
+    },
+    "tabs": {
+      "info": "Profil Bilgileri",
+      "settings": "Hesap Ayarları",
+      "security": "Güvenlik"
+    },
+    "info": {
+      "description": "Profil bilgilerinizi görüntüleyin ve düzenleyin",
+      "displayName": "Ad Soyad",
+      "userName": "Kullanıcı Adı",
+      "cannotChange": "değiştirilemez",
+      "email": "E-posta",
+      "bio": "Hakkımda",
+      "bioPlaceholder": "Kendinizden bahsedin...",
+      "noBio": "Henüz bir bilgi eklenmemiş",
+      "favoriteCoffee": "Favori Kahve",
+      "selectCoffee": "Kahve seçin",
+      "location": "Konum",
+      "locationPlaceholder": "Şehir, Ülke",
+      "noLocation": "Konum belirtilmemiş",
+      "save": "Değişiklikleri Kaydet"
+    },
+    "settings": {
+      "description": "Uygulama tercihlerinizi yönetin",
+      "language": "Dil",
+      "languageDesc": "Uygulama dilini seçin",
+      "theme": "Tema",
+      "themeDesc": "Görünüm temasını seçin",
+      "notifications": "Bildirimler",
+      "notificationsDesc": "Bildirim tercihlerinizi yönetin",
+      "emailNotifications": "E-posta Bildirimleri",
+      "emailNotificationsDesc": "Önemli güncellemeleri e-posta ile alın",
+      "pushNotifications": "Push Bildirimleri",
+      "pushNotificationsDesc": "Anlık bildirimler alın",
+      "friendRequestNotifications": "Arkadaşlık İstekleri",
+      "friendRequestNotificationsDesc": "Yeni arkadaşlık isteklerinde bilgilendirilme",
+      "messageNotifications": "Mesaj Bildirimleri",
+      "messageNotificationsDesc": "Yeni mesajlarda bilgilendirilme"
+    },
+    "security": {
+      "changePassword": "Şifre Değiştir",
+      "changePasswordDesc": "Hesap güvenliğiniz için şifrenizi düzenli olarak değiştirin",
+      "currentPassword": "Mevcut Şifre",
+      "newPassword": "Yeni Şifre",
+      "confirmPassword": "Şifre Tekrar",
+      "updatePassword": "Şifreyi Güncelle",
+      "twoFactor": "İki Faktörlü Doğrulama",
+      "twoFactorDesc": "Hesabınıza ek bir güvenlik katmanı ekleyin",
+      "twoFactorSetup": "İki faktörlü doğrulamayı etkinleştirmek için QR kodu tarayın",
+      "activeSessions": "Aktif Oturumlar",
+      "activeSessionsDesc": "Hesabınıza giriş yapılan cihazları yönetin",
+      "currentSession": "Bu Cihaz",
+      "endSession": "Oturumu Sonlandır",
+      "dangerZone": "Tehlikeli Bölge",
+      "dangerZoneDesc": "Bu işlemler geri alınamaz",
+      "deleteAccount": "Hesabı Sil",
+      "deleteWarning": "Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinecektir.",
+      "deleteConfirmTitle": "Hesabınızı silmek istediğinize emin misiniz?",
+      "deleteConfirmDesc": "Bu işlem geri alınamaz. Tüm kahve geçmişiniz, arkadaşlarınız ve puanlarınız kalıcı olarak silinecektir.",
+      "confirmDelete": "Evet, Hesabımı Sil"
+    }
   },
   "friends": {
     "page": {

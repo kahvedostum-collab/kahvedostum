@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
+import PropTypes from "prop-types";
 import {
   MoreVertical,
   MessageCircle,
@@ -8,16 +9,20 @@ import {
   Coffee,
   Loader2,
   AlertTriangle,
-} from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/shacdn/avatar';
-import { Button } from '@/components/shacdn/button';
+} from "lucide-react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/shacdn/avatar";
+import { Button } from "@/components/shacdn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/shacdn/dropdown-menu';
+} from "@/components/shacdn/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -25,15 +30,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/shacdn/dialog';
+} from "@/components/shacdn/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/shacdn/tooltip';
-import { removeFriend } from '@/endpoints/friends/FriendsAPI';
-import { toast } from 'react-toastify';
+} from "@/components/shacdn/tooltip";
+import { removeFriend } from "@/endpoints/friends/FriendsAPI";
+import { toast } from "react-toastify";
 
 const FriendCard = ({ friend, onMessageClick }) => {
   const { t } = useTranslation();
@@ -41,15 +46,15 @@ const FriendCard = ({ friend, onMessageClick }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
-  // Simüle edilmiş online durumu (rastgele)
-  const isOnline = friend.isOnline ?? Math.random() > 0.5;
+  // Fixed: Use actual online status from API, default to false instead of random
+  const isOnline = friend.isOnline ?? false;
 
   const getInitials = (name) => {
-    if (!name) return '?';
+    if (!name) return "?";
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -58,10 +63,10 @@ const FriendCard = ({ friend, onMessageClick }) => {
     setIsRemoving(true);
     try {
       await dispatch(removeFriend(friend.userId || friend.id)).unwrap();
-      toast.success(t('friends.card.removedSuccess'));
+      toast.success(t("friends.card.removedSuccess"));
       setShowConfirm(false);
     } catch (error) {
-      toast.error(error?.error?.message || 'Bir hata oluştu');
+      toast.error(error?.error?.message || t("common.error"));
     } finally {
       setIsRemoving(false);
     }
@@ -69,7 +74,7 @@ const FriendCard = ({ friend, onMessageClick }) => {
 
   return (
     <>
-      <div className="group flex items-center justify-between p-4 bg-white dark:bg-zinc-800 rounded-xl border border-amber-100 dark:border-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 cursor-default">
+      <div className="group flex items-center justify-between p-4 bg-white/60 dark:bg-zinc-800/60 backdrop-blur-md rounded-xl border border-white/30 dark:border-amber-900/30 shadow-sm hover:bg-white/80 dark:hover:bg-zinc-800/80 hover:border-amber-200/50 dark:hover:border-amber-700/50 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 cursor-default">
         <div className="flex items-center gap-4">
           {/* Avatar with Online Status */}
           <div className="relative">
@@ -79,7 +84,7 @@ const FriendCard = ({ friend, onMessageClick }) => {
                 alt={friend.displayName || friend.userName}
                 className="object-cover"
               />
-              <AvatarFallback className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-800 dark:text-amber-200 font-bold text-lg">
+              <AvatarFallback className="bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-800 dark:text-amber-200 font-bold text-lg">
                 {getInitials(friend.displayName || friend.userName)}
               </AvatarFallback>
             </Avatar>
@@ -89,14 +94,16 @@ const FriendCard = ({ friend, onMessageClick }) => {
                 <TooltipTrigger asChild>
                   <span
                     className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white ${
-                      isOnline
-                        ? 'bg-green-500 animate-pulse'
-                        : 'bg-gray-300'
+                      isOnline ? "bg-green-500 animate-pulse" : "bg-gray-300"
                     }`}
                   />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isOnline ? t('friends.chat.online') : t('friends.chat.offline')}</p>
+                  <p>
+                    {isOnline
+                      ? t("friends.chat.online")
+                      : t("friends.chat.offline")}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -108,11 +115,15 @@ const FriendCard = ({ friend, onMessageClick }) => {
               {friend.displayName || friend.userName}
             </p>
             {friend.userName && (
-              <p className="text-sm text-amber-500 dark:text-amber-500">@{friend.userName}</p>
+              <p className="text-sm text-amber-500 dark:text-amber-500">
+                @{friend.userName}
+              </p>
             )}
             <div className="flex items-center gap-1 mt-1">
               <Coffee className="h-3 w-3 text-amber-400" />
-              <span className="text-xs text-amber-400">{t('friends.card.badge')}</span>
+              <span className="text-xs text-amber-400">
+                {t("friends.card.badge")}
+              </span>
             </div>
           </div>
         </div>
@@ -122,11 +133,13 @@ const FriendCard = ({ friend, onMessageClick }) => {
           <Button
             variant="outline"
             size="sm"
-            className="border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 dark:hover:from-amber-900/30 dark:hover:to-orange-900/30 hover:border-amber-300 dark:hover:border-amber-600 hover:text-amber-800 dark:hover:text-amber-200 transition-all duration-300 group/btn"
+            className="border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-linear-to-r hover:from-amber-50 hover:to-orange-50 dark:hover:from-amber-900/30 dark:hover:to-orange-900/30 hover:border-amber-300 dark:hover:border-amber-600 hover:text-amber-800 dark:hover:text-amber-200 transition-all duration-300 group/btn"
             onClick={() => onMessageClick?.(friend)}
           >
             <MessageCircle className="h-4 w-4 mr-2 group-hover/btn:scale-110 transition-transform" />
-            <span className="hidden sm:inline">{t('friends.card.message')}</span>
+            <span className="hidden sm:inline">
+              {t("friends.card.message")}
+            </span>
           </Button>
 
           <DropdownMenu>
@@ -135,17 +148,21 @@ const FriendCard = ({ friend, onMessageClick }) => {
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+                aria-label={t("common.moreOptions") || "Daha fazla seçenek"}
               >
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 dark:bg-zinc-800 dark:border-amber-900/50">
+            <DropdownMenuContent
+              align="end"
+              className="w-48 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-lg border-amber-200/50 dark:border-amber-900/50 shadow-lg"
+            >
               <DropdownMenuItem
                 onClick={() => onMessageClick?.(friend)}
                 className="text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/30"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                {t('friends.card.sendMessage')}
+                {t("friends.card.sendMessage")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -153,7 +170,7 @@ const FriendCard = ({ friend, onMessageClick }) => {
                 onClick={() => setShowConfirm(true)}
               >
                 <UserMinus className="h-4 w-4 mr-2" />
-                {t('friends.card.removeFriend')}
+                {t("friends.card.removeFriend")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -167,9 +184,13 @@ const FriendCard = ({ friend, onMessageClick }) => {
             <div className="mx-auto sm:mx-0 h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
               <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
             </div>
-            <DialogTitle className="text-xl dark:text-white">{t('friends.card.removeFriend')}</DialogTitle>
+            <DialogTitle className="text-xl dark:text-white">
+              {t("friends.card.removeFriend")}
+            </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-400">
-              {t('friends.card.removeFriendDesc', { name: friend.displayName || friend.userName })}
+              {t("friends.card.removeFriendDesc", {
+                name: friend.displayName || friend.userName,
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
@@ -178,7 +199,7 @@ const FriendCard = ({ friend, onMessageClick }) => {
               onClick={() => setShowConfirm(false)}
               className="w-full sm:w-auto"
             >
-              {t('friends.card.cancel')}
+              {t("friends.card.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -189,12 +210,12 @@ const FriendCard = ({ friend, onMessageClick }) => {
               {isRemoving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t('friends.card.removing')}
+                  {t("friends.card.removing")}
                 </>
               ) : (
                 <>
                   <UserMinus className="h-4 w-4 mr-2" />
-                  {t('friends.card.remove')}
+                  {t("friends.card.remove")}
                 </>
               )}
             </Button>
@@ -203,6 +224,22 @@ const FriendCard = ({ friend, onMessageClick }) => {
       </Dialog>
     </>
   );
+};
+
+FriendCard.propTypes = {
+  friend: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    userId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    displayName: PropTypes.string,
+    userName: PropTypes.string,
+    avatarUrl: PropTypes.string,
+    isOnline: PropTypes.bool,
+  }).isRequired,
+  onMessageClick: PropTypes.func,
+};
+
+FriendCard.defaultProps = {
+  onMessageClick: null,
 };
 
 export default FriendCard;

@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router";
 import Home from "@/pages/Home";
 import Login from "@/pages/authentication/Login";
 import SignUp from "@/pages/authentication/SignUp";
+import ForgotPassword from "@/pages/authentication/ForgotPassword";
 import NotFound from "@/pages/errors/NotFound";
 import NoAccess from "@/pages/errors/NoAccess";
 
@@ -11,10 +12,12 @@ import ProtectedRoute from "@/components/routing/ProtectedRoute";
 import PublicRoute from "@/components/routing/PublicRoute";
 import ScrollToTop from "@/components/routing/ScrollToTop";
 import EmptyLayout from "@/layout/EmptyLayout";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy loaded pages (protected routes)
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const CoffeeFriends = lazy(() => import("@/pages/friends/CoffeeFriends"));
+const Profile = lazy(() => import("@/pages/profile/Profile"));
 const About = lazy(() => import("@/pages/others/About"));
 
 // Loading component
@@ -26,7 +29,7 @@ const PageLoader = () => (
 
 const App = () => {
   return (
-    <>
+    <ErrorBoundary>
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -43,6 +46,7 @@ const App = () => {
           >
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password/:token?" element={<ForgotPassword />} />
           </Route>
 
           {/* Protected route'lar - auth gerektiren sayfalar (lazy loaded) */}
@@ -62,6 +66,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Genel sayfalar (lazy loaded) */}
           <Route path="/about" element={<About />} />
@@ -74,7 +86,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </>
+    </ErrorBoundary>
   );
 };
 

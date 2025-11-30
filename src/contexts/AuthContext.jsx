@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useCallback, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import { resetInitialState, setIsLogged, setIsInitialized } from "@/slice/KDSlice";
 import { toast } from "react-toastify";
 import {
@@ -43,10 +44,17 @@ export const AuthProvider = ({ children }) => {
     };
   }, [dispatch, navigate]);
 
+  // Use ref to track isLogged without causing re-registration of event listener
+  const isLoggedRef = useRef(isLogged);
+  useEffect(() => {
+    isLoggedRef.current = isLogged;
+  }, [isLogged]);
+
   // localStorage değişikliklerini dinle (farklı tab/window için)
+  // Using ref pattern to avoid memory leak from event listener re-registration
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === "accessToken" && !e.newValue && isLogged) {
+      if (e.key === "accessToken" && !e.newValue && isLoggedRef.current) {
         dispatch(resetInitialState());
         navigate("/login");
       }
@@ -54,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [dispatch, isLogged, navigate]);
+  }, [dispatch, navigate]);
 
   const logout = useCallback(() => {
     clearTokens();
@@ -77,4 +85,8 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
+};
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };

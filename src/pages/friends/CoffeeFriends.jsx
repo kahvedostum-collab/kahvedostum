@@ -163,6 +163,15 @@ const DesktopLayout = ({
   const indicatorRef = useRef(null);
 
   useEffect(() => {
+    // Track all RAF IDs for proper cleanup
+    const frameIds = [];
+
+    const trackFrame = (callback) => {
+      const id = requestAnimationFrame(callback);
+      frameIds.push(id);
+      return id;
+    };
+
     const updateIndicator = () => {
       if (!tabsRef.current || !indicatorRef.current) return;
       const activeTabEl = tabsRef.current.querySelector('[data-state="active"]');
@@ -195,19 +204,20 @@ const DesktopLayout = ({
     };
 
     // requestAnimationFrame ile DOM'un hazır olmasını bekle
-    const frameId = requestAnimationFrame(() => {
+    trackFrame(() => {
       initIndicator();
       // Tab değişince animasyonlu güncelle
       if (activeTab) {
-        requestAnimationFrame(updateIndicator);
+        trackFrame(updateIndicator);
       }
     });
 
-    const handleResize = () => requestAnimationFrame(initIndicator);
+    const handleResize = () => trackFrame(initIndicator);
     window.addEventListener('resize', handleResize);
 
     return () => {
-      cancelAnimationFrame(frameId);
+      // Cancel all tracked RAF IDs
+      frameIds.forEach(cancelAnimationFrame);
       window.removeEventListener('resize', handleResize);
     };
   }, [activeTab]);

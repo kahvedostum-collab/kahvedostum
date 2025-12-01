@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
+import PropTypes from "prop-types";
 import { Search, UserPlus, Loader2, Users, AlertCircle } from "lucide-react";
 import {
   Dialog,
@@ -59,7 +60,7 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
       });
       setSearchResults(response.data?.data || response.data || []);
     } catch (error) {
-      toast.error(t('friends.addFriend.searchError'));
+      toast.error(t("friends.addFriend.searchError"));
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -77,11 +78,15 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
     try {
       await dispatch(sendFriendRequest(user.id)).unwrap();
       toast.success(
-        t('friends.addFriend.requestSentSuccess', { name: user.displayName || user.userName })
+        t("friends.addFriend.requestSentSuccess", {
+          name: user.displayName || user.userName,
+        })
       );
       setSearchResults((prev) => prev.filter((u) => u.id !== user.id));
     } catch (error) {
-      toast.error(error?.error?.message || t('friends.addFriend.requestSentError'));
+      toast.error(
+        error?.error?.message || t("friends.addFriend.requestSentError")
+      );
     } finally {
       setSendingTo(null);
     }
@@ -99,15 +104,15 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
       <DialogContent className="sm:max-w-lg bg-white dark:bg-zinc-900 dark:border-zinc-700">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center">
               <UserPlus className="h-5 w-5 text-white" />
             </div>
             <div>
               <DialogTitle className="text-xl text-amber-900 dark:text-amber-100">
-                {t('friends.addFriend.title')}
+                {t("friends.addFriend.title")}
               </DialogTitle>
               <DialogDescription className="text-amber-600 dark:text-amber-400">
-                {t('friends.addFriend.description')}
+                {t("friends.addFriend.description")}
               </DialogDescription>
             </div>
           </div>
@@ -119,7 +124,7 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-400" />
             <Input
               ref={inputRef}
-              placeholder={t('friends.addFriend.searchPlaceholder')}
+              placeholder={t("friends.addFriend.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -129,7 +134,7 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
           <Button
             onClick={handleSearch}
             disabled={isSearching || !searchQuery.trim()}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md"
+            className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md"
           >
             {isSearching ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -162,7 +167,7 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
               {searchResults.map((user, index) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-100 dark:border-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-bottom-2"
+                  className="flex items-center justify-between p-4 bg-linear-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-100 dark:border-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-bottom-2"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3">
@@ -172,7 +177,7 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
                         alt={user.displayName || user.userName}
                         className="object-cover"
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-800 dark:text-amber-200 font-bold">
+                      <AvatarFallback className="bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-800 dark:text-amber-200 font-bold">
                         {getInitials(user.displayName || user.userName)}
                       </AvatarFallback>
                     </Avatar>
@@ -191,14 +196,14 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
                     size="sm"
                     onClick={() => handleSendRequest(user)}
                     disabled={sendingTo === user.id}
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md"
+                    className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md"
                   >
                     {sendingTo === user.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
                         <UserPlus className="h-4 w-4 mr-1.5" />
-                        {t('friends.addFriend.addButton')}
+                        {t("friends.addFriend.addButton")}
                       </>
                     )}
                   </Button>
@@ -211,22 +216,22 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
                 <AlertCircle className="h-8 w-8 text-amber-500 dark:text-amber-400" />
               </div>
               <h4 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-2">
-                {t('friends.empty.noSearchResults')}
+                {t("friends.empty.noSearchResults")}
               </h4>
               <p className="text-amber-600 dark:text-amber-400 text-sm max-w-xs">
-                {t('friends.empty.noSearchResultsDesc')}
+                {t("friends.empty.noSearchResultsDesc")}
               </p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center mb-4">
+              <div className="h-16 w-16 rounded-full bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center mb-4">
                 <Users className="h-8 w-8 text-amber-600 dark:text-amber-400" />
               </div>
               <h4 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-2">
-                {t('friends.empty.searchPrompt')}
+                {t("friends.empty.searchPrompt")}
               </h4>
               <p className="text-amber-600 dark:text-amber-400 text-sm max-w-xs">
-                {t('friends.empty.searchPromptDesc')}
+                {t("friends.empty.searchPromptDesc")}
               </p>
             </div>
           )}
@@ -234,6 +239,11 @@ const AddFriendDialog = ({ open, onOpenChange }) => {
       </DialogContent>
     </Dialog>
   );
+};
+
+AddFriendDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onOpenChange: PropTypes.func.isRequired,
 };
 
 export default AddFriendDialog;

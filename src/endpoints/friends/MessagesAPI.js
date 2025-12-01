@@ -108,6 +108,9 @@ export const MessagesReducer = (builder) => {
       state.messages.error = action.payload?.error?.message || 'Mesajlar alınamadı';
     })
     // markMessagesAsSeen
+    .addCase(markMessagesAsSeen.pending, (state) => {
+      // Silently handle - no loading state needed for this operation
+    })
     .addCase(markMessagesAsSeen.fulfilled, (state, action) => {
       // Konuşmadaki okunmamış sayısını sıfırla
       const conversation = state.messages.conversations.find(
@@ -115,6 +118,12 @@ export const MessagesReducer = (builder) => {
       );
       if (conversation) {
         conversation.unreadCount = 0;
+      }
+    })
+    .addCase(markMessagesAsSeen.rejected, (state, action) => {
+      // Silently fail but log for debugging - don't disrupt user experience
+      if (import.meta.env.DEV) {
+        console.warn('Failed to mark messages as seen:', action.payload);
       }
     });
 };

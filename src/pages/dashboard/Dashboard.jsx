@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -26,9 +26,9 @@ import {
   PieChart,
   ResponsiveContainer,
 } from "recharts";
-import { Users, Coffee, Trophy, TrendingUp } from "lucide-react";
+import { Users, Coffee, Trophy, TrendingUp, Camera } from "lucide-react";
 import DefaultLayout from "@/layout/DefaultLayout";
-import QRScanner from "@/components/dashboard/QRScanner";
+import { CameraModal } from "@/components/dashboard/CameraModal";
 import { fetchFriends } from "@/endpoints/friends/FriendsAPI";
 import { fetchIncomingRequests } from "@/endpoints/friends/FriendRequestsAPI";
 
@@ -80,24 +80,29 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userDetails } = useAuth();
-  const { friends } = useSelector((state) => state.kahvedostumslice);
+  const friends = useSelector((state) => state.kahvedostumslice.friends);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  useEffect(() => {
+  const FetchRequiredData = async () => {
     dispatch(fetchFriends());
     dispatch(fetchIncomingRequests());
-  }, [dispatch]);
+  };
 
-  const friendsCount = friends.list?.length || 0;
-  const incomingCount = friends.incomingRequests?.length || 0;
+  useEffect(() => {
+    FetchRequiredData();
+  }, []);
+
+  const friendsCount = friends && friends.list?.length || 0;
+  const incomingCount = friends && friends.incomingRequests?.length || 0;
   const displayName =
     userDetails?.displayName || userDetails?.userName || t("dashboard.welcome");
 
   return (
     <DefaultLayout>
-      <div className="w-full min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-950 dark:via-amber-950/20 dark:to-zinc-950 p-6 transition-colors duration-300">
+      <div className="w-full min-h-screen bg-linear-to-r from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-950 dark:via-amber-950/20 dark:to-zinc-950 p-6 transition-colors duration-300">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Welcome Banner */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 rounded-2xl p-6 shadow-lg">
+          <div className="bg-linear-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 rounded-2xl p-6 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-xl bg-white/20 flex items-center justify-center">
                 <Coffee className="h-8 w-8 text-white" />
@@ -121,7 +126,7 @@ const Dashboard = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-linear-to-r from-amber-400 to-orange-500 flex items-center justify-center">
                     <Users className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -133,7 +138,7 @@ const Dashboard = () => {
                     </CardDescription>
                   </div>
                 </div>
-                {incomingCount > 0 && (
+                {incomingCount && incomingCount > 0 && (
                   <Badge className="bg-red-500 hover:bg-red-600 text-white">
                     {incomingCount} {t("dashboard.newRequest")}
                   </Badge>
@@ -307,8 +312,24 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* QR Scanner FAB */}
-      <QRScanner />
+      {/* Camera FAB */}
+      <button
+        onClick={() => setIsCameraOpen(true)}
+        className="fixed bottom-6 right-6 z-50 group"
+        aria-label={t("camera.title")}
+      >
+        {/* Pulse rings */}
+        <span className="absolute inset-0 rounded-full bg-amber-500/30 animate-ping" />
+        <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-pulse" />
+
+        {/* Button */}
+        <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-amber-500/40">
+          <Camera className="h-6 w-6 transition-transform group-hover:rotate-12" />
+        </span>
+      </button>
+
+      {/* Camera Modal */}
+      <CameraModal open={isCameraOpen} onOpenChange={setIsCameraOpen} />
     </DefaultLayout>
   );
 };

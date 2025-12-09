@@ -5,6 +5,7 @@ import { LoginReducer } from '@/endpoints/authentication/LoginAPI';
 import { FriendsReducer } from '@/endpoints/friends/FriendsAPI';
 import { FriendRequestsReducer } from '@/endpoints/friends/FriendRequestsAPI';
 import { MessagesReducer } from '@/endpoints/friends/MessagesAPI';
+import { MeReducer } from '@/endpoints/layout/MeAPI';
 
 const initialState = {
   isLogged: false,
@@ -27,6 +28,12 @@ const initialState = {
     isLoading: false,
     error: null,
   },
+  // User details state
+  userDetails: {
+    data: null,
+    isLoading: false,
+    error: null,
+  },
 };
 
 const KDSlice = createSlice({
@@ -38,7 +45,8 @@ const KDSlice = createSlice({
       LoginReducer,
       FriendsReducer,
       FriendRequestsReducer,
-      MessagesReducer
+      MessagesReducer,
+      MeReducer
     )(builder);
   },
 });

@@ -10,6 +10,7 @@ import {
   clearTokens,
   subscribeToAuthEvents,
 } from "@/services/authService";
+import { logoutAPI } from "@/endpoints/authentication/LogoutAPI";
 
 const AuthContext = createContext(null);
 
@@ -64,10 +65,16 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [dispatch, navigate]);
 
-  const logout = useCallback(() => {
-    clearTokens();
-    toast.success("Başarıyla çıkış yapıldı.");
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      await logoutAPI();
+    } finally {
+      // API başarısız olsa bile local temizlik yap
+      dispatch(resetInitialState());
+      clearTokens();
+      toast.success("Başarıyla çıkış yapıldı.");
+    }
+  }, [dispatch]);
 
   const value = {
     isLogged,

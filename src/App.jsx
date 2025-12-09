@@ -22,7 +22,7 @@ const About = lazy(() => import("@/pages/others/About"));
 
 // Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800">
+  <div className="flex items-center justify-center min-h-screen bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800">
     <div className="animate-spin h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full" />
   </div>
 );
@@ -46,7 +46,10 @@ const App = () => {
           >
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password/:token?" element={<ForgotPassword />} />
+            <Route
+              path="/forgot-password/:token?"
+              element={<ForgotPassword />}
+            />
           </Route>
 
           {/* Protected route'lar - auth gerektiren sayfalar (lazy loaded) */}

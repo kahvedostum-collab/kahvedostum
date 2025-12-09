@@ -1,35 +1,35 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
-import { Save, Pencil, X } from 'lucide-react';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import PropTypes from "prop-types";
+import { Save, Pencil, X } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/shacdn/card';
-import { Button } from '@/components/shacdn/button';
-import { Input } from '@/components/shacdn/input';
-import { Label } from '@/components/shacdn/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/shacdn/badge';
+} from "@/components/shacdn/card";
+import { Button } from "@/components/shacdn/button";
+import { Input } from "@/components/shacdn/input";
+import { Label } from "@/components/shacdn/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/shacdn/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 const coffeeOptions = [
-  { value: 'turkish', label: 'Türk Kahvesi' },
-  { value: 'espresso', label: 'Espresso' },
-  { value: 'latte', label: 'Latte' },
-  { value: 'cappuccino', label: 'Cappuccino' },
-  { value: 'americano', label: 'Americano' },
-  { value: 'mocha', label: 'Mocha' },
-  { value: 'filter', label: 'Filtre Kahve' },
+  { value: "turkish", label: "Türk Kahvesi" },
+  { value: "espresso", label: "Espresso" },
+  { value: "latte", label: "Latte" },
+  { value: "cappuccino", label: "Cappuccino" },
+  { value: "americano", label: "Americano" },
+  { value: "mocha", label: "Mocha" },
+  { value: "filter", label: "Filtre Kahve" },
 ];
 
 const ProfileInfo = ({ profile, onUpdate }) => {
@@ -68,10 +68,10 @@ const ProfileInfo = ({ profile, onUpdate }) => {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="text-amber-700 dark:text-amber-400">
-            {t('profile.tabs.info')}
+            {t("profile.tabs.info")}
           </CardTitle>
           <CardDescription className="dark:text-amber-500/70">
-            {t('profile.info.description')}
+            {t("profile.info.description")}
           </CardDescription>
         </div>
         {!isEditing ? (
@@ -82,17 +82,17 @@ const ProfileInfo = ({ profile, onUpdate }) => {
             className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/30"
           >
             <Pencil className="h-4 w-4 mr-2" />
-            {t('profile.editProfile')}
+            {t("profile.editProfile")}
           </Button>
         ) : (
           <div className="flex gap-2">
             <Button
               size="sm"
               onClick={handleSave}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
             >
               <Save className="h-4 w-4 mr-2" />
-              {t('profile.info.save')}
+              {t("profile.info.save")}
             </Button>
             <Button
               variant="ghost"
@@ -109,12 +109,12 @@ const ProfileInfo = ({ profile, onUpdate }) => {
         {/* Display Name */}
         <div className="space-y-2">
           <Label className="text-amber-700 dark:text-amber-400">
-            {t('profile.info.displayName')}
+            {t("profile.info.displayName")}
           </Label>
           {isEditing ? (
             <Input
               value={formData.displayName}
-              onChange={(e) => handleChange('displayName', e.target.value)}
+              onChange={(e) => handleChange("displayName", e.target.value)}
               className="border-amber-200 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50 focus:ring-amber-500"
             />
           ) : (
@@ -127,14 +127,17 @@ const ProfileInfo = ({ profile, onUpdate }) => {
         {/* Username (readonly) */}
         <div className="space-y-2">
           <Label className="text-amber-700 dark:text-amber-400">
-            {t('profile.info.userName')}
+            {t("profile.info.userName")}
           </Label>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+            <Badge
+              variant="secondary"
+              className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300"
+            >
               @{profile.userName}
             </Badge>
             <span className="text-xs text-amber-500 dark:text-amber-600">
-              ({t('profile.info.cannotChange')})
+              ({t("profile.info.cannotChange")})
             </span>
           </div>
         </div>
@@ -142,13 +145,13 @@ const ProfileInfo = ({ profile, onUpdate }) => {
         {/* Email */}
         <div className="space-y-2">
           <Label className="text-amber-700 dark:text-amber-400">
-            {t('profile.info.email')}
+            {t("profile.info.email")}
           </Label>
           {isEditing ? (
             <Input
               type="email"
               value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              onChange={(e) => handleChange("email", e.target.value)}
               className="border-amber-200 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50 focus:ring-amber-500"
             />
           ) : (
@@ -161,18 +164,22 @@ const ProfileInfo = ({ profile, onUpdate }) => {
         {/* Bio */}
         <div className="space-y-2">
           <Label className="text-amber-700 dark:text-amber-400">
-            {t('profile.info.bio')}
+            {t("profile.info.bio")}
           </Label>
           {isEditing ? (
             <Textarea
               value={formData.bio}
-              onChange={(e) => handleChange('bio', e.target.value)}
+              onChange={(e) => handleChange("bio", e.target.value)}
               className="border-amber-200 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50 focus:ring-amber-500 min-h-[100px]"
-              placeholder={t('profile.info.bioPlaceholder')}
+              placeholder={t("profile.info.bioPlaceholder")}
             />
           ) : (
             <p className="text-amber-900 dark:text-amber-200 py-2">
-              {profile.bio || <span className="text-amber-400 italic">{t('profile.info.noBio')}</span>}
+              {profile.bio || (
+                <span className="text-amber-400 italic">
+                  {t("profile.info.noBio")}
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -180,15 +187,15 @@ const ProfileInfo = ({ profile, onUpdate }) => {
         {/* Favorite Coffee */}
         <div className="space-y-2">
           <Label className="text-amber-700 dark:text-amber-400">
-            {t('profile.info.favoriteCoffee')}
+            {t("profile.info.favoriteCoffee")}
           </Label>
           {isEditing ? (
             <Select
               value={formData.favoriteCoffee}
-              onValueChange={(value) => handleChange('favoriteCoffee', value)}
+              onValueChange={(value) => handleChange("favoriteCoffee", value)}
             >
               <SelectTrigger className="border-amber-200 dark:border-amber-800 dark:bg-zinc-800 dark:text-white">
-                <SelectValue placeholder={t('profile.info.selectCoffee')} />
+                <SelectValue placeholder={t("profile.info.selectCoffee")} />
               </SelectTrigger>
               <SelectContent>
                 {coffeeOptions.map((option) => (
@@ -200,7 +207,8 @@ const ProfileInfo = ({ profile, onUpdate }) => {
             </Select>
           ) : (
             <p className="text-amber-900 dark:text-amber-200 py-2">
-              {coffeeOptions.find((o) => o.value === profile.favoriteCoffee)?.label || profile.favoriteCoffee}
+              {coffeeOptions.find((o) => o.value === profile.favoriteCoffee)
+                ?.label || profile.favoriteCoffee}
             </p>
           )}
         </div>
@@ -208,18 +216,22 @@ const ProfileInfo = ({ profile, onUpdate }) => {
         {/* Location */}
         <div className="space-y-2">
           <Label className="text-amber-700 dark:text-amber-400">
-            {t('profile.info.location')}
+            {t("profile.info.location")}
           </Label>
           {isEditing ? (
             <Input
               value={formData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
+              onChange={(e) => handleChange("location", e.target.value)}
               className="border-amber-200 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50 focus:ring-amber-500"
-              placeholder={t('profile.info.locationPlaceholder')}
+              placeholder={t("profile.info.locationPlaceholder")}
             />
           ) : (
             <p className="text-amber-900 dark:text-amber-200 py-2">
-              {profile.location || <span className="text-amber-400 italic">{t('profile.info.noLocation')}</span>}
+              {profile.location || (
+                <span className="text-amber-400 italic">
+                  {t("profile.info.noLocation")}
+                </span>
+              )}
             </p>
           )}
         </div>

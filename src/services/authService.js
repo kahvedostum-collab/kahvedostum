@@ -38,13 +38,28 @@ export const setTokens = (accessToken, refreshToken) => {
 };
 
 /**
- * Token'ları temizle ve LOGOUT event'i emit et
+ * Tüm cookie'leri temizle
+ */
+const clearAllCookies = () => {
+  document.cookie.split(';').forEach((cookie) => {
+    const name = cookie.split('=')[0].trim();
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+  });
+};
+
+/**
+ * Token'ları ve cookie'leri temizle, LOGOUT event'i emit et
  */
 export const clearTokens = () => {
+  // localStorage temizliği
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('accessTokenExpiresAt');
   localStorage.removeItem('refreshTokenExpiresAt');
+
+  // Cookie temizliği
+  clearAllCookies();
+
   dispatchAuthEvent(AUTH_EVENTS.LOGOUT);
 };
 

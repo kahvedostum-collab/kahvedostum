@@ -124,16 +124,24 @@
     "back": "Geri",
     "moreOptions": "Daha fazla seçenek"
   },
-  "qrScanner": {
-    "title": "QR Kod Okut",
-    "scanQR": "QR Kod Okut",
-    "instruction": "Kameranızı QR koda doğrultun",
+  "camera": {
+    "title": "Fotoğraf Çek",
+    "description": "Kamera ve konum izni vererek fotoğraf çekebilirsiniz.",
+    "capture": "Fotoğraf Çek",
+    "retake": "Tekrar Çek",
+    "send": "Gönder",
     "loading": "Kamera yükleniyor...",
-    "success": "QR Kod Başarıyla Okundu!",
-    "helpTitle": "İpuçları:",
-    "helpTip1": "QR kodu iyi aydınlatılmış bir ortamda tutun",
-    "helpTip2": "Kamerayı sabit tutun",
-    "helpTip3": "QR kodun tamamen görünür olduğundan emin olun"
+    "locationInfo": "Konum",
+    "success": "Gönderildi!",
+    "successDescription": "Fotoğraf ve konum bilgisi başarıyla alındı.",
+    "viewOnMap": "Haritada Görüntüle",
+    "switchCamera": "Kamerayı Çevir",
+    "errors": {
+      "cameraPermission": "Kamera izni reddedildi veya kamera bulunamadı.",
+      "locationPermission": "Konum izni reddedildi.",
+      "locationNotSupported": "Konum servisi desteklenmiyor.",
+      "notAccessible": "Kameraya erişilemiyor"
+    }
   },
   "profile": {
     "title": "Profilim",

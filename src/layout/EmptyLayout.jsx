@@ -40,7 +40,7 @@ const EmptyLayout = () => {
     languages.find((l) => l.code === currentLanguage) || languages[0];
 
   return (
-    <div className="relative min-h-screen min-w-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-amber-950 dark:to-zinc-900 p-4 transition-colors duration-300">
+    <div className="relative min-h-screen min-w-screen flex items-center justify-center bg-linear-to-r from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-amber-950 dark:to-zinc-900 p-4 transition-colors duration-300">
       {/* Kahve Desenli Arka Plan */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div
@@ -69,7 +69,7 @@ const EmptyLayout = () => {
             className="w-56 bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800 p-0 overflow-hidden"
           >
             {/* Header */}
-            <div className="px-3 py-2.5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 border-b border-amber-100 dark:border-amber-900/50">
+            <div className="px-3 py-2.5 bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 border-b border-amber-100 dark:border-amber-900/50">
               <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
                 {t("settings.title")}
               </p>
@@ -84,7 +84,7 @@ const EmptyLayout = () => {
                 <CollapsibleTrigger asChild>
                   <button className="flex items-center justify-between w-full px-2 py-2 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors group">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-lg bg-linear-to-r from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 flex items-center justify-center">
                         <Globe className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                       </div>
                       <div className="text-left">
@@ -112,7 +112,7 @@ const EmptyLayout = () => {
                           onClick={() => changeLanguage(lang.code)}
                           className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-left transition-all duration-200 ${
                             currentLanguage === lang.code
-                              ? "bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-900 dark:text-amber-100"
+                              ? "bg-linear-to-r from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-900 dark:text-amber-100"
                               : "hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-700 dark:text-amber-300"
                           }`}
                         >
@@ -142,7 +142,7 @@ const EmptyLayout = () => {
                 className="cursor-pointer rounded-lg px-2 py-2 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-linear-to-r from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 flex items-center justify-center">
                     {isDark ? (
                       <Sun className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                     ) : (

@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Coffee,
   LogOut,
@@ -9,7 +10,11 @@ import {
   ChevronDown,
   User,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/shacdn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/shacdn/avatar";
 import { Button } from "@/components/shacdn/button";
 import {
   DropdownMenu,
@@ -27,21 +32,22 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
-// Fake user data - will be replaced with real data later
-const fakeUser = {
-  displayName: "Kahve Sever",
-  userName: "kahvesever",
-  email: "kahve@example.com",
-  avatarUrl: null,
-};
-
 const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
+  const { userDetails } = useSelector((state) => state.kahvedostumslice);
 
-  const user = fakeUser;
+  const userData = userDetails?.data;
+  const user = {
+    displayName: userData?.firstName && userData?.lastName
+      ? `${userData.firstName} ${userData.lastName}`.trim()
+      : userData?.userName || "Ad Soyad",
+    userName: userData?.userName || "username",
+    email: userData?.email || "",
+    avatarUrl: userData?.avatarUrl || null,
+  };
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -68,10 +74,10 @@ const Header = () => {
             onClick={() => navigate("/dashboard")}
             className="flex items-center gap-3 group"
           >
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+            <div className="h-10 w-10 rounded-xl bg-linear-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
               <Coffee className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent hidden sm:block">
+            <span className="text-xl font-bold bg-linear-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent hidden sm:block">
               {t("header.appName")}
             </span>
           </button>
@@ -89,7 +95,7 @@ const Header = () => {
                     alt={user.displayName}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900 dark:to-orange-900 text-amber-800 dark:text-amber-200 font-bold text-sm">
+                  <AvatarFallback className="bg-linear-to-r from-amber-100 to-orange-100 dark:from-amber-900 dark:to-orange-900 text-amber-800 dark:text-amber-200 font-bold text-sm">
                     {getInitials(user.displayName)}
                   </AvatarFallback>
                 </Avatar>

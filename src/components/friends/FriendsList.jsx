@@ -1,9 +1,9 @@
-import { Users, UserPlus, Coffee } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
-import { Skeleton } from '@/components/shacdn/skeleton';
-import { Button } from '@/components/shacdn/button';
-import FriendCard from './FriendCard';
+import { Users, UserPlus, Coffee } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import PropTypes from "prop-types";
+import { Skeleton } from "@/components/shacdn/skeleton";
+import { Button } from "@/components/shacdn/button";
+import FriendCard from "./FriendCard";
 
 const FriendsList = ({ friends, isLoading, onMessageClick, onAddFriend }) => {
   const { t } = useTranslation();
@@ -34,9 +34,9 @@ const FriendsList = ({ friends, isLoading, onMessageClick, onAddFriend }) => {
 
   if (!friends || friends.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl border border-amber-100 dark:border-amber-900/50">
+      <div className="flex flex-col items-center justify-center py-16 text-center bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl border border-amber-100 dark:border-amber-900/50">
         <div className="relative mb-6">
-          <div className="h-24 w-24 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+          <div className="h-24 w-24 rounded-full bg-linear-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
             <Users className="h-12 w-12 text-white" />
           </div>
           <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-white dark:bg-zinc-700 shadow-md flex items-center justify-center">
@@ -44,18 +44,18 @@ const FriendsList = ({ friends, isLoading, onMessageClick, onAddFriend }) => {
           </div>
         </div>
         <h3 className="text-xl font-bold text-amber-900 dark:text-amber-100 mb-2">
-          {t('friends.empty.noFriends')}
+          {t("friends.empty.noFriends")}
         </h3>
         <p className="text-amber-600 dark:text-amber-400 max-w-sm mb-6">
-          {t('friends.empty.noFriendsDesc')}
+          {t("friends.empty.noFriendsDesc")}
         </p>
         {onAddFriend && (
           <Button
             onClick={onAddFriend}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            {t('friends.empty.addFirstFriend')}
+            {t("friends.empty.addFirstFriend")}
           </Button>
         )}
       </div>

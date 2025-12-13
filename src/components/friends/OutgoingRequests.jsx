@@ -1,7 +1,7 @@
-import { Send, Clock } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Skeleton } from '@/components/shacdn/skeleton';
-import RequestCard from './RequestCard';
+import { Send, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Skeleton } from "@/components/shacdn/skeleton";
+import RequestCard from "./RequestCard";
 
 const OutgoingRequests = ({ requests, isLoading }) => {
   const { t } = useTranslation();
@@ -12,7 +12,7 @@ const OutgoingRequests = ({ requests, isLoading }) => {
         {[1, 2].map((i) => (
           <div
             key={i}
-            className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-100 dark:border-amber-900/50"
+            className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-linear-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl border border-amber-100 dark:border-amber-900/50"
           >
             <div className="flex items-center gap-4">
               <Skeleton className="h-14 w-14 rounded-full" />
@@ -33,9 +33,9 @@ const OutgoingRequests = ({ requests, isLoading }) => {
 
   if (!requests || requests.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/50">
+      <div className="flex flex-col items-center justify-center py-12 text-center bg-linear-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/50">
         <div className="relative mb-4">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+          <div className="h-16 w-16 rounded-full bg-linear-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
             <Send className="h-8 w-8 text-white" />
           </div>
           <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white dark:bg-zinc-700 shadow-md flex items-center justify-center">
@@ -43,10 +43,10 @@ const OutgoingRequests = ({ requests, isLoading }) => {
           </div>
         </div>
         <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-2">
-          {t('friends.empty.noOutgoing')}
+          {t("friends.empty.noOutgoing")}
         </h3>
         <p className="text-amber-600 dark:text-amber-400 max-w-xs text-sm">
-          {t('friends.empty.noOutgoingDesc')}
+          {t("friends.empty.noOutgoingDesc")}
         </p>
       </div>
     );

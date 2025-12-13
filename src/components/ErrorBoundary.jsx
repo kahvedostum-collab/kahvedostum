@@ -1,5 +1,5 @@
-import { Component } from 'react';
-import PropTypes from 'prop-types';
+import { Component } from "react";
+import PropTypes from "prop-types";
 
 /**
  * Error Boundary component that catches JavaScript errors in child component tree
@@ -19,7 +19,7 @@ class ErrorBoundary extends Component {
     this.setState({ errorInfo });
     // Log error to console in development
     if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
+      console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
     // TODO: Send to error reporting service in production
   }
@@ -37,7 +37,7 @@ class ErrorBoundary extends Component {
 
       // Default fallback UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 p-4">
           <div className="max-w-md w-full bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <svg
@@ -58,7 +58,8 @@ class ErrorBoundary extends Component {
               Bir şeyler yanlış gitti
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Beklenmeyen bir hata oluştu. Lütfen sayfayı yenileyin veya daha sonra tekrar deneyin.
+              Beklenmeyen bir hata oluştu. Lütfen sayfayı yenileyin veya daha
+              sonra tekrar deneyin.
             </p>
             <div className="flex gap-3 justify-center">
               <button

@@ -124,16 +124,24 @@
     "back": "Back",
     "moreOptions": "More options"
   },
-  "qrScanner": {
-    "title": "Scan QR Code",
-    "scanQR": "Scan QR Code",
-    "instruction": "Point your camera at the QR code",
+  "camera": {
+    "title": "Take Photo",
+    "description": "You can take photos by granting camera and location permissions.",
+    "capture": "Take Photo",
+    "retake": "Retake",
+    "send": "Send",
     "loading": "Loading camera...",
-    "success": "QR Code Successfully Scanned!",
-    "helpTitle": "Tips:",
-    "helpTip1": "Keep the QR code in a well-lit environment",
-    "helpTip2": "Hold the camera steady",
-    "helpTip3": "Make sure the QR code is fully visible"
+    "locationInfo": "Location",
+    "success": "Sent!",
+    "successDescription": "Photo and location information received successfully.",
+    "viewOnMap": "View on Map",
+    "switchCamera": "Switch Camera",
+    "errors": {
+      "cameraPermission": "Camera permission denied or camera not found.",
+      "locationPermission": "Location permission denied.",
+      "locationNotSupported": "Location service not supported.",
+      "notAccessible": "Camera not accessible"
+    }
   },
   "profile": {
     "title": "My Profile",

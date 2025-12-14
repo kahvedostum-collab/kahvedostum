@@ -1,0 +1,340 @@
+{
+  "header": {
+    "appName": "Kahve Dostum",
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "logout": "Çıkış Yap"
+  },
+  "language": {
+    "title": "Dil",
+    "tr": "Türkçe",
+    "en": "English",
+    "de": "Deutsch",
+    "fr": "Français",
+    "es": "Español",
+    "it": "Italiano",
+    "pt": "Português",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ar": "العربية"
+  },
+  "theme": {
+    "title": "Tema",
+    "light": "Açık Mod",
+    "dark": "Koyu Mod",
+    "system": "Sistem"
+  },
+  "settings": {
+    "title": "Ayarlar"
+  },
+  "auth": {
+    "appName": "Kahvedostum",
+    "tagline": "Kahve Tutkunlarının Buluşma Noktası",
+    "taglineSignup": "Kahve Ailesine Katılın",
+    "login": {
+      "title": "Hoş Geldiniz",
+      "subtitle": "Hesabınıza giriş yapın ve kahve keyfine devam edin",
+      "email": "E-posta",
+      "emailPlaceholder": "ornek@kahvedostum.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Şifremi Unuttum?",
+      "submit": "Giriş Yap",
+      "submitting": "Giriş yapılıyor...",
+      "noAccount": "Hesabınız yok mu?",
+      "signupLink": "Hemen Kayıt Olun",
+      "success": "Başarıyla giriş yapıldı! Yönlendiriliyorsunuz..."
+    },
+    "signup": {
+      "title": "Hesap Oluşturun",
+      "subtitle": "Kahve tutkunları topluluğuna ücretsiz katılın",
+      "firstName": "Ad",
+      "firstNamePlaceholder": "Ahmet",
+      "lastName": "Soyad",
+      "lastNamePlaceholder": "Yılmaz",
+      "email": "E-posta",
+      "emailPlaceholder": "ornek@kahvedostum.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "En az 8 karakter olmalıdır",
+      "confirmPassword": "Şifre Tekrar",
+      "submit": "Hesap Oluştur",
+      "submitting": "Hesap oluşturuluyor...",
+      "hasAccount": "Zaten hesabınız var mı?",
+      "loginLink": "Giriş Yapın",
+      "passwordMismatch": "Şifreler eşleşmiyor!",
+      "acceptTerms": "Lütfen kullanım koşullarını kabul edin!"
+    },
+    "forgotPassword": {
+      "title": "Şifreni mi Unuttun?",
+      "subtitle": "Endişelenme, sıfırlama linki göndereceğiz",
+      "resetTitle": "Yeni Şifre Belirle",
+      "resetSubtitle": "Hesabın için yeni bir şifre oluştur",
+      "identifier": "E-posta veya Kullanıcı Adı",
+      "identifierPlaceholder": "ornek@mail.com veya kullaniciadi",
+      "newPassword": "Yeni Şifre",
+      "confirmPassword": "Şifre Tekrar",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "En az 8 karakter olmalıdır",
+      "sendLink": "Sıfırlama Linki Gönder",
+      "sending": "Gönderiliyor...",
+      "updatePassword": "Şifreyi Güncelle",
+      "updating": "Güncelleniyor...",
+      "backToLogin": "Giriş sayfasına dön",
+      "emailSent": "Sıfırlama linki e-posta adresinize gönderildi!",
+      "passwordUpdated": "Şifreniz başarıyla güncellendi!",
+      "emptyIdentifier": "E-posta veya kullanıcı adı girin",
+      "userNotFound": "Bu bilgilerle eşleşen kullanıcı bulunamadı",
+      "passwordMismatch": "Şifreler eşleşmiyor!",
+      "passwordTooShort": "Şifre en az 8 karakter olmalıdır",
+      "invalidToken": "Sıfırlama linki geçersiz veya süresi dolmuş"
+    },
+    "footer": {
+      "copyright": "© 2025 Kahvedostum. Tüm hakları saklıdır.",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Koşulları"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Kahve Sever",
+    "hello": "Merhaba",
+    "welcomeMessage": "Kahve dolu bir gün dileriz!",
+    "totalCoffee": "Toplam Kahve",
+    "thisMonth": "Bu ay",
+    "favoriteCoffee": "Favori Kahve",
+    "mostPreferred": "En çok tercih edilen",
+    "points": "Puan",
+    "totalPoints": "Toplam kazanılan puan",
+    "coffeeFriends": "Kahve Arkadaşları",
+    "friendsAndMessages": "Arkadaşlarınız ve mesajlarınız",
+    "friends": "arkadaş",
+    "newRequest": "yeni istek",
+    "monthlyCoffee": "Aylık Kahve Tüketimi",
+    "last6Months": "Son 6 ayın verileri",
+    "coffeeTypes": "Kahve Türleri",
+    "distribution": "Tüketim dağılımı"
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "confirm": "Onayla",
+    "back": "Geri",
+    "moreOptions": "Daha fazla seçenek"
+  },
+  "camera": {
+    "title": "Fiş Tara",
+    "description": "Fiş fotoğrafı çekerek puan kazanabilirsiniz.",
+    "capture": "Fotoğraf Çek",
+    "retake": "Tekrar Çek",
+    "send": "Gönder",
+    "continue": "Devam Et",
+    "submitting": "Gönderiliyor...",
+    "uploading": "Yükleniyor...",
+    "loading": "Kamera yükleniyor...",
+    "switchCamera": "Kamerayı Çevir",
+    "receipt": {
+      "title": "Fiş Bilgileri",
+      "taxNumber": "Vergi No",
+      "address": "Adres",
+      "addressPlaceholder": "Etiler Mah. Nispetiye Cad. No:12",
+      "total": "Toplam Tutar",
+      "date": "Fiş Tarihi",
+      "receiptNo": "Fiş No",
+      "brand": "Kafe Adı",
+      "brandPlaceholder": "Starbucks, Gloria Jeans, vb.",
+      "validationError": "Lütfen zorunlu alanları doldurun (Vergi No, Adres, Tutar, Tarih)",
+      "success": "Fiş başarıyla tarandı!",
+      "error": "Fiş taranırken bir hata oluştu",
+      "successTitle": "Başarılı!",
+      "successDescription": "Fiş kaydedildi ve puanlarınız eklendi.",
+      "errorTitle": "Hata!",
+      "errorDescription": "Fiş işlenirken bir sorun oluştu.",
+      "done": "Tamam",
+      "cancel": "İptal",
+      "tryAgain": "Tekrar Dene"
+    },
+    "errors": {
+      "cameraPermission": "Kamera izni reddedildi veya kamera bulunamadı.",
+      "notAccessible": "Kameraya erişilemiyor",
+      "uploadFailed": "Fotoğraf yüklenirken bir hata oluştu"
+    },
+    "confirm": {
+      "title": "Kamera İzni Gerekli",
+      "description": "Fiş fotoğrafı çekebilmek için kamera erişimine ihtiyacımız var.",
+      "cameraAccess": "Kameranıza erişim izni istenecektir",
+      "privacyNote": "Fotoğraflarınız sadece fiş tarama için kullanılır",
+      "accept": "Devam Et",
+      "decline": "Vazgeç"
+    }
+  },
+  "profile": {
+    "title": "Profilim",
+    "editProfile": "Profili Düzenle",
+    "changeAvatar": "Profil Fotoğrafını Değiştir",
+    "memberSince": "Üyelik",
+    "avatarEditor": {
+      "title": "Profil Fotoğrafı Düzenle",
+      "selectImage": "Fotoğraf Seç",
+      "dragOrClick": "Sürükle veya tıkla",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "cropHint": "Dairesel alanı ayarlayın"
+    },
+    "stats": {
+      "totalCoffee": "Toplam Kahve",
+      "friends": "Arkadaş",
+      "points": "Puan"
+    },
+    "tabs": {
+      "info": "Profil Bilgileri",
+      "settings": "Hesap Ayarları",
+      "security": "Güvenlik"
+    },
+    "info": {
+      "description": "Profil bilgilerinizi görüntüleyin ve düzenleyin",
+      "displayName": "Ad Soyad",
+      "userName": "Kullanıcı Adı",
+      "cannotChange": "değiştirilemez",
+      "email": "E-posta",
+      "bio": "Hakkımda",
+      "bioPlaceholder": "Kendinizden bahsedin...",
+      "noBio": "Henüz bir bilgi eklenmemiş",
+      "favoriteCoffee": "Favori Kahve",
+      "selectCoffee": "Kahve seçin",
+      "location": "Konum",
+      "locationPlaceholder": "Şehir, Ülke",
+      "noLocation": "Konum belirtilmemiş",
+      "save": "Değişiklikleri Kaydet"
+    },
+    "settings": {
+      "description": "Uygulama tercihlerinizi yönetin",
+      "language": "Dil",
+      "languageDesc": "Uygulama dilini seçin",
+      "theme": "Tema",
+      "themeDesc": "Görünüm temasını seçin",
+      "notifications": "Bildirimler",
+      "notificationsDesc": "Bildirim tercihlerinizi yönetin",
+      "emailNotifications": "E-posta Bildirimleri",
+      "emailNotificationsDesc": "Önemli güncellemeleri e-posta ile alın",
+      "pushNotifications": "Push Bildirimleri",
+      "pushNotificationsDesc": "Anlık bildirimler alın",
+      "friendRequestNotifications": "Arkadaşlık İstekleri",
+      "friendRequestNotificationsDesc": "Yeni arkadaşlık isteklerinde bilgilendirilme",
+      "messageNotifications": "Mesaj Bildirimleri",
+      "messageNotificationsDesc": "Yeni mesajlarda bilgilendirilme"
+    },
+    "security": {
+      "changePassword": "Şifre Değiştir",
+      "changePasswordDesc": "Hesap güvenliğiniz için şifrenizi düzenli olarak değiştirin",
+      "currentPassword": "Mevcut Şifre",
+      "newPassword": "Yeni Şifre",
+      "confirmPassword": "Şifre Tekrar",
+      "updatePassword": "Şifreyi Güncelle",
+      "twoFactor": "İki Faktörlü Doğrulama",
+      "twoFactorDesc": "Hesabınıza ek bir güvenlik katmanı ekleyin",
+      "twoFactorSetup": "İki faktörlü doğrulamayı etkinleştirmek için QR kodu tarayın",
+      "activeSessions": "Aktif Oturumlar",
+      "activeSessionsDesc": "Hesabınıza giriş yapılan cihazları yönetin",
+      "currentSession": "Bu Cihaz",
+      "endSession": "Oturumu Sonlandır",
+      "dangerZone": "Tehlikeli Bölge",
+      "dangerZoneDesc": "Bu işlemler geri alınamaz",
+      "deleteAccount": "Hesabı Sil",
+      "deleteWarning": "Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinecektir.",
+      "deleteConfirmTitle": "Hesabınızı silmek istediğinize emin misiniz?",
+      "deleteConfirmDesc": "Bu işlem geri alınamaz. Tüm kahve geçmişiniz, arkadaşlarınız ve puanlarınız kalıcı olarak silinecektir.",
+      "confirmDelete": "Evet, Hesabımı Sil"
+    }
+  },
+  "friends": {
+    "page": {
+      "title": "Kahve Arkadaşlarım",
+      "friendCount": "{{count}} arkadaş",
+      "unreadMessages": "{{count}} okunmamış mesaj",
+      "allMessagesRead": "Tüm mesajlar okundu",
+      "addFriend": "Arkadaş Ekle"
+    },
+    "tabs": {
+      "friends": "Arkadaşlar",
+      "requests": "İstekler",
+      "messages": "Mesajlar"
+    },
+    "sections": {
+      "incomingTitle": "Gelen İstekler",
+      "incomingDesc": "Sizi arkadaş olarak eklemek isteyenler",
+      "outgoingTitle": "Gönderilen İstekler",
+      "outgoingDesc": "Onay bekleyen arkadaşlık istekleriniz",
+      "messagesTitle": "Mesajlarınız",
+      "messagesDesc": "Sohbet başlatmak için soldaki listeden bir konuşma seçin"
+    },
+    "empty": {
+      "noFriends": "Henüz arkadaşınız yok",
+      "noFriendsDesc": "Yeni arkadaşlar ekleyerek kahve deneyimlerinizi paylaşmaya başlayın!",
+      "addFirstFriend": "İlk Arkadaşını Ekle",
+      "noMessages": "Henüz mesajınız yok",
+      "noMessagesDesc": "Arkadaşlarınıza mesaj göndererek sohbet başlatın",
+      "noIncoming": "Gelen istek yok",
+      "noIncomingDesc": "Bekleyen arkadaşlık isteği bulunmuyor",
+      "noOutgoing": "Gönderilen istek yok",
+      "noOutgoingDesc": "Henüz kimseye arkadaşlık isteği göndermediniz",
+      "noSearchResults": "Kullanıcı bulunamadı",
+      "noSearchResultsDesc": "Farklı bir arama terimi deneyin veya kullanıcı adını kontrol edin",
+      "searchPrompt": "Arkadaş Ara",
+      "searchPromptDesc": "Kullanıcı adı veya e-posta girerek arkadaş aramaya başlayın"
+    },
+    "chat": {
+      "startChat": "Sohbete Başlayın",
+      "noMessagesYet": "Henüz mesaj yok. İlk mesajı siz gönderin!",
+      "online": "Çevrimiçi",
+      "offline": "Çevrimdışı",
+      "inputPlaceholder": "Mesajınızı yazın...",
+      "sending": "Gönderiliyor",
+      "sent": "Gönderildi",
+      "read": "Okundu",
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "sendError": "Mesaj gönderilemedi",
+      "noMessage": "Mesaj yok"
+    },
+    "card": {
+      "badge": "Kahve Dostu",
+      "message": "Mesaj",
+      "sendMessage": "Mesaj Gönder",
+      "removeFriend": "Arkadaşlıktan Çıkar",
+      "removeFriendDesc": "{{name}} adlı kişiyi arkadaş listenizden çıkarmak istediğinize emin misiniz? Bu işlem geri alınamaz.",
+      "cancel": "Vazgeç",
+      "remove": "Çıkar",
+      "removing": "Çıkarılıyor...",
+      "removedSuccess": "Arkadaşlıktan çıkarıldı",
+      "unknownUser": "Bilinmeyen"
+    },
+    "requests": {
+      "accept": "Kabul Et",
+      "reject": "Reddet",
+      "cancelRequest": "İptal Et",
+      "acceptedSuccess": "Arkadaşlık isteği kabul edildi! 🎉",
+      "rejectedInfo": "Arkadaşlık isteği reddedildi",
+      "cancelledInfo": "Arkadaşlık isteği iptal edildi"
+    },
+    "addFriend": {
+      "title": "Arkadaş Ekle",
+      "description": "Kullanıcı adı veya e-posta ile arayın",
+      "searchPlaceholder": "Kullanıcı ara...",
+      "addButton": "Ekle",
+      "searchError": "Arama yapılırken bir hata oluştu",
+      "requestSentSuccess": "{{name}}'e arkadaşlık isteği gönderildi! 🎉",
+      "requestSentError": "İstek gönderilemedi"
+    },
+    "time": {
+      "now": "Şimdi",
+      "minutesShort": "{{count}}dk",
+      "daysShort": "{{count}}g",
+      "minutesAgo": "{{count}} dk önce",
+      "hoursAgo": "{{count}} saat önce",
+      "daysAgo": "{{count}} gün önce"
+    }
+  }
+}

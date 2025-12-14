@@ -1,4 +1,9 @@
 import axios from 'axios';
+<<<<<<< Updated upstream
+=======
+import { toast } from 'react-toastify';
+import { clearTokens, onTokenRefresh } from '@/services/authService';
+>>>>>>> Stashed changes
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
@@ -45,7 +50,7 @@ axiosClient.interceptors.response.use(
           if (status === 'noAccess' && (message === 'Access denied' || message === 'Permission Not Found')) {
             window.location.href = '/no-access';
           } else if (status === 'Unauthenticated') {
-            localStorage.clear();
+            clearTokens();
             localStorage.setItem('Unauthenticated', 'true');
             window.location.href = '/';
             //console.log('Unauthenticated');
@@ -86,6 +91,8 @@ axiosClient.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
+        // Queue'ya alınan request'lerde de _retry işaretle (tekrar refresh loop'a girmemesi için)
+        originalRequest._retry = true;
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(token => {
@@ -113,7 +120,11 @@ axiosClient.interceptors.response.use(
 
       try {
         const response = await axios.post(
+<<<<<<< Updated upstream
           `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'}/auth/refresh`,
+=======
+          `${import.meta.env.VITE_API_BASE_URL ?? 'http://91.241.50.213:5050/api'}/Auth/Refresh`,
+>>>>>>> Stashed changes
           { refreshToken },
           {
             headers: {
@@ -132,6 +143,14 @@ axiosClient.interceptors.response.use(
           isRefreshing = false;
           
           return axiosClient(originalRequest);
+        } else {
+          // Refresh endpoint 200 dışında bir status döndü (beklenmeyen durum)
+          const unexpectedError = new Error('Refresh token request returned non-200 status');
+          processQueue(unexpectedError, null);
+          isRefreshing = false;
+          clearTokens();
+          window.location.href = '/login';
+          return Promise.reject(unexpectedError);
         }
       } catch (refreshError) {
         // Refresh failed, clear everything and redirect

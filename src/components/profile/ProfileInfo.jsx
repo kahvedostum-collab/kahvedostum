@@ -194,12 +194,16 @@ const ProfileInfo = ({ profile, onUpdate }) => {
               value={formData.favoriteCoffee}
               onValueChange={(value) => handleChange("favoriteCoffee", value)}
             >
-              <SelectTrigger className="border-amber-200 dark:border-amber-800 dark:bg-zinc-800 dark:text-white">
-                <SelectValue placeholder={t("profile.info.selectCoffee")} />
+              <SelectTrigger className="border-amber-200 dark:border-amber-800 bg-white dark:bg-zinc-800 text-amber-900 dark:text-white focus:ring-amber-500 focus:border-amber-500">
+                <SelectValue placeholder={t("profile.info.selectCoffee")} className="text-amber-500" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-zinc-800 border-amber-200 dark:border-amber-800 shadow-lg">
                 {coffeeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-amber-900 dark:text-amber-100 focus:bg-amber-100 dark:focus:bg-amber-900/50 focus:text-amber-900 dark:focus:text-amber-100 cursor-pointer"
+                  >
                     {option.label}
                   </SelectItem>
                 ))}

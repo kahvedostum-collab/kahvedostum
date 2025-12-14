@@ -1,13 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '@/services/axiosClient';
-import { setTokens } from '@/services/authService';
 
 export const LoginAPI = createAsyncThunk(
   'kahvedostumslice/LoginAPIHandler',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        '/auth/login',
+        '/Auth/Login',
         {
           userNameOrEmail: credentials.email,
           password: credentials.password,
@@ -18,9 +17,10 @@ export const LoginAPI = createAsyncThunk(
           },
         }
       );
-      if (response.status === 200) {
+      if (response.status ===  200) {
         const { accessToken, refreshToken } = response.data.data;
-        setTokens(accessToken, refreshToken);
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
         return response.status;
       } else {
         return rejectWithValue({ error: { message: 'Invalid credentials' } });

@@ -179,47 +179,82 @@ const FriendCard = ({ friend, onMessageClick }) => {
 
       {/* Remove Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="sm:max-w-md dark:bg-zinc-900 dark:border-zinc-700">
-          <DialogHeader className="text-center sm:text-left">
-            <div className="mx-auto sm:mx-0 h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
-              <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-md max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-red-200 dark:border-red-900/50"
+        >
+          {/* Gradient Header */}
+          <div className="relative bg-gradient-to-r from-red-500 via-rose-500 to-red-600 px-6 py-4">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+            <DialogHeader className="relative">
+              <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                {t("friends.card.removeFriend")}
+              </DialogTitle>
+              <DialogDescription className="text-red-100 mt-1">
+                {t("friends.card.removeFriendDesc", {
+                  name: friend.displayName || friend.userName,
+                })}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {/* Friend Info Preview */}
+            <div className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 mb-6">
+              <Avatar className="h-12 w-12 border-2 border-red-200 dark:border-red-800">
+                <AvatarImage
+                  src={friend.avatarUrl}
+                  alt={friend.displayName || friend.userName}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/50 dark:to-rose-900/50 text-red-800 dark:text-red-200 font-bold">
+                  {getInitials(friend.displayName || friend.userName)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-red-900 dark:text-red-100">
+                  {friend.displayName || friend.userName}
+                </p>
+                {friend.userName && (
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    @{friend.userName}
+                  </p>
+                )}
+              </div>
             </div>
-            <DialogTitle className="text-xl dark:text-white">
-              {t("friends.card.removeFriend")}
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
-              {t("friends.card.removeFriendDesc", {
-                name: friend.displayName || friend.userName,
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirm(false)}
-              className="w-full sm:w-auto"
-            >
-              {t("friends.card.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRemove}
-              disabled={isRemoving}
-              className="w-full sm:w-auto"
-            >
-              {isRemoving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t("friends.card.removing")}
-                </>
-              ) : (
-                <>
-                  <UserMinus className="h-4 w-4 mr-2" />
-                  {t("friends.card.remove")}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 h-11 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+              >
+                {t("friends.card.cancel")}
+              </Button>
+              <Button
+                onClick={handleRemove}
+                disabled={isRemoving}
+                className="flex-1 h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-lg shadow-red-500/30"
+              >
+                {isRemoving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {t("friends.card.removing")}
+                  </>
+                ) : (
+                  <>
+                    <UserMinus className="h-4 w-4 mr-2" />
+                    {t("friends.card.remove")}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

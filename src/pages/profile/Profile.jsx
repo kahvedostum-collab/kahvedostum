@@ -98,22 +98,37 @@ const Profile = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="w-full grid grid-cols-3 bg-amber-100 dark:bg-zinc-800 rounded-xl p-1">
+            <TabsList className="w-full grid grid-cols-3 bg-amber-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-1 border border-amber-200/50 dark:border-amber-900/30 overflow-hidden">
               <TabsTrigger
                 value="info"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 rounded-lg transition-all"
+                className="min-w-0 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all duration-200 truncate
+                  text-amber-700/70 dark:text-amber-400/60
+                  hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-zinc-700/50
+                  data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700
+                  data-[state=active]:text-amber-800 dark:data-[state=active]:text-amber-300
+                  data-[state=active]:shadow-sm data-[state=active]:shadow-amber-200/50 dark:data-[state=active]:shadow-black/20"
               >
                 {t("profile.tabs.info")}
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 rounded-lg transition-all"
+                className="min-w-0 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all duration-200 truncate
+                  text-amber-700/70 dark:text-amber-400/60
+                  hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-zinc-700/50
+                  data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700
+                  data-[state=active]:text-amber-800 dark:data-[state=active]:text-amber-300
+                  data-[state=active]:shadow-sm data-[state=active]:shadow-amber-200/50 dark:data-[state=active]:shadow-black/20"
               >
                 {t("profile.tabs.settings")}
               </TabsTrigger>
               <TabsTrigger
                 value="security"
-                className="data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 rounded-lg transition-all"
+                className="min-w-0 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all duration-200 truncate
+                  text-amber-700/70 dark:text-amber-400/60
+                  hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-zinc-700/50
+                  data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-700
+                  data-[state=active]:text-amber-800 dark:data-[state=active]:text-amber-300
+                  data-[state=active]:shadow-sm data-[state=active]:shadow-amber-200/50 dark:data-[state=active]:shadow-black/20"
               >
                 {t("profile.tabs.security")}
               </TabsTrigger>

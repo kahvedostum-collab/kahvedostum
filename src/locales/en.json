@@ -125,22 +125,49 @@
     "moreOptions": "More options"
   },
   "camera": {
-    "title": "Take Photo",
-    "description": "You can take photos by granting camera and location permissions.",
+    "title": "Scan Receipt",
+    "description": "Earn points by taking a photo of your receipt.",
     "capture": "Take Photo",
     "retake": "Retake",
     "send": "Send",
+    "continue": "Continue",
+    "submitting": "Sending...",
+    "uploading": "Uploading...",
     "loading": "Loading camera...",
-    "locationInfo": "Location",
-    "success": "Sent!",
-    "successDescription": "Photo and location information received successfully.",
-    "viewOnMap": "View on Map",
     "switchCamera": "Switch Camera",
+    "receipt": {
+      "title": "Receipt Information",
+      "taxNumber": "Tax Number",
+      "address": "Address",
+      "addressPlaceholder": "123 Coffee Street, Downtown",
+      "total": "Total Amount",
+      "date": "Receipt Date",
+      "receiptNo": "Receipt No",
+      "brand": "Cafe Name",
+      "brandPlaceholder": "Starbucks, Gloria Jeans, etc.",
+      "validationError": "Please fill in required fields (Tax No, Address, Amount, Date)",
+      "success": "Receipt scanned successfully!",
+      "error": "An error occurred while scanning receipt",
+      "successTitle": "Success!",
+      "successDescription": "Receipt saved and points added.",
+      "errorTitle": "Error!",
+      "errorDescription": "There was a problem processing the receipt.",
+      "done": "Done",
+      "cancel": "Cancel",
+      "tryAgain": "Try Again"
+    },
     "errors": {
       "cameraPermission": "Camera permission denied or camera not found.",
-      "locationPermission": "Location permission denied.",
-      "locationNotSupported": "Location service not supported.",
-      "notAccessible": "Camera not accessible"
+      "notAccessible": "Camera not accessible",
+      "uploadFailed": "An error occurred while uploading the photo"
+    },
+    "confirm": {
+      "title": "Camera Permission Required",
+      "description": "We need camera access to take receipt photos.",
+      "cameraAccess": "You will be asked for camera access permission",
+      "privacyNote": "Your photos are only used for receipt scanning",
+      "accept": "Continue",
+      "decline": "Cancel"
     }
   },
   "profile": {

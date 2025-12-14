@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,13 +29,7 @@ dist-ssr
 *.sw?
 
 .claude
-.github
 .dockerignore
 .mcp.json
-<<<<<<< Updated upstream
-.CLAUDE.md
-=======
 .CLAUDE.md
 CLAUDE.md
-/WARP.md
->>>>>>> Stashed changes

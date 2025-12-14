@@ -125,49 +125,22 @@
     "moreOptions": "Daha fazla seçenek"
   },
   "camera": {
-    "title": "Fiş Tara",
-    "description": "Fiş fotoğrafı çekerek puan kazanabilirsiniz.",
+    "title": "Fotoğraf Çek",
+    "description": "Kamera ve konum izni vererek fotoğraf çekebilirsiniz.",
     "capture": "Fotoğraf Çek",
     "retake": "Tekrar Çek",
     "send": "Gönder",
-    "continue": "Devam Et",
-    "submitting": "Gönderiliyor...",
-    "uploading": "Yükleniyor...",
     "loading": "Kamera yükleniyor...",
+    "locationInfo": "Konum",
+    "success": "Gönderildi!",
+    "successDescription": "Fotoğraf ve konum bilgisi başarıyla alındı.",
+    "viewOnMap": "Haritada Görüntüle",
     "switchCamera": "Kamerayı Çevir",
-    "receipt": {
-      "title": "Fiş Bilgileri",
-      "taxNumber": "Vergi No",
-      "address": "Adres",
-      "addressPlaceholder": "Etiler Mah. Nispetiye Cad. No:12",
-      "total": "Toplam Tutar",
-      "date": "Fiş Tarihi",
-      "receiptNo": "Fiş No",
-      "brand": "Kafe Adı",
-      "brandPlaceholder": "Starbucks, Gloria Jeans, vb.",
-      "validationError": "Lütfen zorunlu alanları doldurun (Vergi No, Adres, Tutar, Tarih)",
-      "success": "Fiş başarıyla tarandı!",
-      "error": "Fiş taranırken bir hata oluştu",
-      "successTitle": "Başarılı!",
-      "successDescription": "Fiş kaydedildi ve puanlarınız eklendi.",
-      "errorTitle": "Hata!",
-      "errorDescription": "Fiş işlenirken bir sorun oluştu.",
-      "done": "Tamam",
-      "cancel": "İptal",
-      "tryAgain": "Tekrar Dene"
-    },
     "errors": {
       "cameraPermission": "Kamera izni reddedildi veya kamera bulunamadı.",
-      "notAccessible": "Kameraya erişilemiyor",
-      "uploadFailed": "Fotoğraf yüklenirken bir hata oluştu"
-    },
-    "confirm": {
-      "title": "Kamera İzni Gerekli",
-      "description": "Fiş fotoğrafı çekebilmek için kamera erişimine ihtiyacımız var.",
-      "cameraAccess": "Kameranıza erişim izni istenecektir",
-      "privacyNote": "Fotoğraflarınız sadece fiş tarama için kullanılır",
-      "accept": "Devam Et",
-      "decline": "Vazgeç"
+      "locationPermission": "Konum izni reddedildi.",
+      "locationNotSupported": "Konum servisi desteklenmiyor.",
+      "notAccessible": "Kameraya erişilemiyor"
     }
   },
   "profile": {

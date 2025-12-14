@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/shacdn/button";
 import { Input } from "@/components/shacdn/input";
 import { Label } from "@/components/shacdn/label";
@@ -17,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-toastify";
 
 const Login = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLogged } = useAuth();
@@ -24,6 +27,7 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Zaten giriş yapılmışsa dashboard'a yönlendir
   useEffect(() => {
@@ -36,166 +40,193 @@ const Login = () => {
     const response = await dispatch(LoginAPI({ email, password }));
 
     if (response == 200) {
-      toast.success("Başarıyla giriş yapıldı! Yönlendiriliyorsunuz...");
+      toast.success(t("auth.login.success"));
       navigate("/");
     }
   };
 
   return (
-    <div className="min-h-screen min-w-screen flex items-center justify-center bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-900 dark:via-amber-950 dark:to-zinc-900 p-4">
-      {/* Kahve Desenli Arka Plan */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v6h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        ></div>
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
-        {/* Logo ve Başlık Alanı */}
-        <div className="text-center mb-8 space-y-2">
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-amber-600 blur-2xl opacity-30 rounded-full"></div>
-              <div className="relative bg-linear-to-br from-amber-600 to-amber-800 text-white p-6 rounded-2xl shadow-2xl">
-                <svg
-                  className="w-12 h-12"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                  />
-                </svg>
-              </div>
+    <>
+      {/* Logo ve Başlık Alanı */}
+      <div className="text-center mb-8 space-y-2">
+        <div className="flex justify-center mb-4">
+          <div className="relative">
+            <div className="absolute inset-0 bg-amber-600 blur-2xl opacity-30 rounded-full"></div>
+            <div className="relative bg-linear-to-r from-amber-600 to-amber-800 text-white p-6 rounded-2xl shadow-2xl">
+              <svg
+                className="w-12 h-12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {/* Steam lines with animation */}
+                <path
+                  d="M7 2c0 1.5-.5 2.5-1 4"
+                  className="animate-pulse"
+                  style={{ animationDelay: "0s" }}
+                  opacity="0.6"
+                />
+                <path
+                  d="M12 2c0 1.5-.5 2.5-1 4"
+                  className="animate-pulse"
+                  style={{ animationDelay: "0.3s" }}
+                  opacity="0.8"
+                />
+                <path
+                  d="M17 2c0 1.5-.5 2.5-1 4"
+                  className="animate-pulse"
+                  style={{ animationDelay: "0.6s" }}
+                  opacity="0.6"
+                />
+                {/* Cup body */}
+                <path
+                  d="M3 8h15v11a3 3 0 01-3 3H6a3 3 0 01-3-3V8z"
+                  fill="currentColor"
+                  fillOpacity="0.2"
+                />
+                <path d="M3 8h15v11a3 3 0 01-3 3H6a3 3 0 01-3-3V8z" />
+                {/* Handle */}
+                <path d="M18 10h2a2 2 0 012 2v1a2 2 0 01-2 2h-2" />
+              </svg>
             </div>
           </div>
-          <h1 className="text-4xl font-bold bg-linear-to-r from-amber-700 via-amber-600 to-amber-800 bg-clip-text text-transparent">
-            Kahvedostum
-          </h1>
-          <p className="text-amber-800 dark:text-amber-200 text-sm font-medium">
-            Kahve Tutkunlarının Buluşma Noktası ☕
-          </p>
         </div>
+        <h1 className="text-4xl font-bold bg-linear-to-r from-amber-700 via-amber-600 to-amber-800 bg-clip-text text-transparent">
+          {t("auth.appName")}
+        </h1>
+        <p className="text-amber-800 dark:text-amber-200 text-sm font-medium">
+          {t("auth.tagline")}
+        </p>
+      </div>
 
-        {/* Login Card */}
-        <Card className="border-2 border-amber-200 dark:border-amber-900 shadow-2xl backdrop-blur-sm bg-white/95 dark:bg-zinc-900/95">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center bg-linear-to-r from-amber-700 to-amber-900 bg-clip-text text-transparent">
-              Hoş Geldiniz
-            </CardTitle>
-            <CardDescription className="text-center text-base">
-              Hesabınıza giriş yapın ve kahve keyfine devam edin
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
+      {/* Login Card */}
+      <Card className="border-2 border-amber-200 dark:border-amber-800 shadow-2xl backdrop-blur-sm bg-white/95 dark:bg-zinc-900/95">
+        <CardHeader className="space-y-1 pb-6">
+          <CardTitle className="text-2xl font-bold text-center bg-linear-to-r from-amber-700 to-amber-900 bg-clip-text text-transparent">
+            {t("auth.login.title")}
+          </CardTitle>
+          <CardDescription className="text-center text-base text-amber-700 dark:text-amber-300">
+            {t("auth.login.subtitle")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="text"
+                className="text-sm font-semibold text-amber-950 dark:text-amber-50"
+              >
+                {t("auth.login.email")}
+              </Label>
+              <Input
+                id="text"
+                type="text"
+                placeholder={t("auth.login.emailPlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
                 <Label
-                  htmlFor="text"
+                  htmlFor="password"
                   className="text-sm font-semibold text-amber-950 dark:text-amber-50"
                 >
-                  E-posta
+                  {t("auth.login.password")}
                 </Label>
-                <Input
-                  id="text"
-                  type="text"
-                  placeholder="ornek@kahvedostum.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-11 border-amber-300 dark:border-amber-800 focus:border-amber-600 focus:ring-amber-600"
-                />
+                <a
+                  href="/forgot-password"
+                  className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium transition-colors"
+                >
+                  {t("auth.login.forgotPassword")}
+                </a>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="password"
-                    className="text-sm font-semibold text-amber-950 dark:text-amber-50"
-                  >
-                    Şifre
-                  </Label>
-                  <a
-                    href="#"
-                    className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium transition-colors"
-                  >
-                    Şifremi Unuttum?
-                  </a>
-                </div>
+              <div className="relative">
                 <Input
                   id="password"
-                  type="password"
-                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("auth.login.passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-11 border-amber-300 dark:border-amber-800 focus:border-amber-600 focus:ring-amber-600"
+                  className="h-11 pr-10 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
+            </div>
 
-              {error && (
-                <div className="p-3 text-sm text-red-800 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg">
-                  {error}
+            {error && (
+              <div className="p-3 text-sm text-red-800 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className="w-full h-11 bg-linear-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  {t("auth.login.submitting")}
                 </div>
+              ) : (
+                t("auth.login.submit")
               )}
-
-              <Button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="w-full h-11 bg-linear-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Giriş yapılıyor...
-                  </div>
-                ) : (
-                  "Giriş Yap"
-                )}
-              </Button>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 pb-6">
-            <div className="text-sm text-center text-amber-800 dark:text-amber-300">
-              Hesabınız yok mu?{" "}
-              <a
-                href="/signup"
-                className="font-semibold text-amber-700 hover:text-amber-900 dark:text-amber-500 dark:hover:text-amber-400 underline underline-offset-4 transition-colors"
-              >
-                Hemen Kayıt Olun
-              </a>
-            </div>
-          </CardFooter>
-        </Card>
-
-        {/* Alt Bilgi */}
-        <div className="mt-8 text-center text-xs text-amber-700 dark:text-amber-400 space-y-1">
-          <p>© 2025 Kahvedostum. Tüm hakları saklıdır.</p>
-          <div className="flex justify-center gap-4">
+            </Button>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4 pb-6">
+          <div className="text-sm text-center text-amber-800 dark:text-amber-300">
+            {t("auth.login.noAccount")}{" "}
             <a
-              href="#"
-              className="hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+              href="/signup"
+              className="font-semibold text-amber-700 hover:text-amber-900 dark:text-amber-500 dark:hover:text-amber-400 underline underline-offset-4 transition-colors"
             >
-              Gizlilik Politikası
-            </a>
-            <span>•</span>
-            <a
-              href="#"
-              className="hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
-            >
-              Kullanım Koşulları
+              {t("auth.login.signupLink")}
             </a>
           </div>
+        </CardFooter>
+      </Card>
+
+      {/* Alt Bilgi */}
+      <div className="mt-8 text-center text-xs text-amber-700 dark:text-amber-400 space-y-1">
+        <p>{t("auth.footer.copyright")}</p>
+        <div className="flex justify-center gap-4">
+          <a
+            href="#"
+            className="hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+          >
+            {t("auth.footer.privacy")}
+          </a>
+          <span>•</span>
+          <a
+            href="#"
+            className="hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+          >
+            {t("auth.footer.terms")}
+          </a>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -37,9 +37,6 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
   const { activeMessages, isLoading } = useSelector(
     (state) => state.kahvedostumslice.messages
   );
-  const currentUser = useSelector(
-    (state) => state.kahvedostumslice.userDetails.data
-  );
   const [messageText, setMessageText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef(null);
@@ -56,8 +53,8 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
     }
   }, [conversation?.id, dispatch]);
 
-  // Scroll to bottom function
-  const scrollToBottom = useCallback((instant = false) => {
+  // Memoized scroll to bottom function
+  const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
       const scrollElement = scrollRef.current.querySelector(
         "[data-radix-scroll-area-viewport]"
@@ -65,36 +62,17 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
       if (scrollElement) {
         scrollElement.scrollTo({
           top: scrollElement.scrollHeight,
-          behavior: instant ? "instant" : "smooth",
+          behavior: "smooth",
         });
       }
     }
   }, []);
 
-  // Mesajlar yüklendiğinde veya yeni mesaj geldiğinde en alta kaydır
-  const prevLoadingRef = useRef(isLoading);
-  const prevMessagesLengthRef = useRef(activeMessages.length);
-
+  // Debounced scroll effect - only triggers once when messages change
   useEffect(() => {
-    const wasLoading = prevLoadingRef.current;
-    const prevLength = prevMessagesLengthRef.current;
-
-    prevLoadingRef.current = isLoading;
-    prevMessagesLengthRef.current = activeMessages.length;
-
-    // Loading bitti ve mesajlar var - ilk açılış (instant scroll)
-    if (wasLoading && !isLoading && activeMessages.length > 0) {
-      requestAnimationFrame(() => {
-        setTimeout(() => scrollToBottom(true), 50);
-      });
-      return;
-    }
-
-    // Yeni mesaj eklendi (smooth scroll)
-    if (!isLoading && activeMessages.length > prevLength && prevLength > 0) {
-      setTimeout(() => scrollToBottom(false), 100);
-    }
-  }, [isLoading, activeMessages.length, scrollToBottom]);
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [activeMessages.length, scrollToBottom]);
 
   useEffect(() => {
     // Auto-focus input on mount
@@ -266,9 +244,8 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
                 {/* Messages for this date */}
                 <div className="space-y-3">
                   {messages.map((message, index) => {
-                    // Mesaj gönderen ID'si current user ID ile eşleşirse sağda göster
-                    const isOwn = currentUser?.id && message.senderId === currentUser.id;
-                    const isRead = message.isRead ?? false;
+                    const isOwn = message.senderId !== otherUser?.id;
+                    const isRead = message.isRead ?? Math.random() > 0.3;
                     const showAvatar =
                       !isOwn &&
                       (index === 0 ||

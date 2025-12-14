@@ -1,16 +1,27 @@
-import { useAuth } from "@/contexts/AuthContext";
 import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Header from "@/components/layout/Header";
+import { fetchMe } from "@/endpoints/layout/MeAPI";
 
 const DefaultLayout = ({ children }) => {
-  const { isLogged, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { data: userData } = useSelector(
+    (state) => state.kahvedostumslice?.userDetails || {}
+  );
 
+  // Kullanıcı verisi yoksa sadece 1 kere çağır
   useEffect(() => {
-    if (!isLogged) {
-      logout();
+    if (!userData) {
+      dispatch(fetchMe());
     }
-  }, [isLogged]);
+  }, [dispatch, userData]);
 
-  return <div className="min-h-screen min-w-full flex">{children}</div>;
+  return (
+    <div className="min-h-screen min-w-full flex flex-col bg-white dark:bg-zinc-950 transition-colors duration-300">
+      <Header />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
 };
 
 export default DefaultLayout;

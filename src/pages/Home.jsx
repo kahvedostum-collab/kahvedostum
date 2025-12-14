@@ -7,8 +7,8 @@ const Home = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Yükleniyor...</p>
+      <div className="w-full flex items-center justify-center min-h-screen bg-white dark:bg-zinc-950 transition-colors duration-300">
+        <p className="text-amber-800 dark:text-amber-200">Yükleniyor...</p>
       </div>
     );
   }

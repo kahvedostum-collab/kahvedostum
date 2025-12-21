@@ -71,7 +71,7 @@ const CoffeeFriends = () => {
   if (selectedConversation && activeTab === "messages") {
     return (
       <DefaultLayout>
-        <div className="min-h-screen w-full bg-linear-to-r from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-950 dark:via-amber-950/20 dark:to-zinc-950 flex flex-col lg:hidden transition-colors duration-300">
+        <div className="h-full min-h-0 w-full bg-linear-to-r from-amber-50 via-orange-50 to-amber-100 dark:from-zinc-950 dark:via-amber-950/20 dark:to-zinc-950 flex flex-col lg:hidden transition-colors duration-300 overflow-hidden">
           <ChatView
             conversation={selectedConversation}
             onBack={() => setSelectedConversation(null)}

@@ -13,7 +13,11 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { formatTime as formatTimeUtil, formatDateLong } from "@/utils/locale";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/shacdn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/shacdn/avatar";
 import { Button } from "@/components/shacdn/button";
 import { Input } from "@/components/shacdn/input";
 import { ScrollArea } from "@/components/shacdn/scroll-area";
@@ -46,6 +50,9 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
   const inputRef = useRef(null);
 
   const otherUser = conversation?.otherUser || conversation?.participant;
+  // Friends API'den userId olarak geliyor, id değil
+  const otherUserId =
+    otherUser?.userId || otherUser?.id || conversation?.otherUserId;
   // Fixed: Use actual online status from API, default to false instead of random
   const isOnline = otherUser?.isOnline ?? false;
 
@@ -123,8 +130,10 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) return t('friends.chat.today');
-    if (date.toDateString() === yesterday.toDateString()) return t('friends.chat.yesterday');
+    if (date.toDateString() === today.toDateString())
+      return t("friends.chat.today");
+    if (date.toDateString() === yesterday.toDateString())
+      return t("friends.chat.yesterday");
     return formatDateLong(dateString);
   };
 
@@ -147,12 +156,12 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
         sendMessage({
           conversationId: conversation.id,
           content: messageText.trim(),
-          receiverId: otherUser?.id,
+          receiverId: otherUserId,
         })
       ).unwrap();
       setMessageText("");
     } catch (error) {
-      toast.error(error?.error?.message || t('friends.chat.sendError'));
+      toast.error(error?.error?.message || t("friends.chat.sendError"));
     } finally {
       setIsSending(false);
     }
@@ -174,7 +183,7 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
   return (
     <div className={containerClass}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 lg:gap-3 p-3 lg:p-4 border-b border-amber-100 dark:border-amber-900/50 bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800">
+      <div className="shrink-0 items-center justify-between gap-2 lg:gap-3 p-3 lg:p-4 border-b border-amber-100 dark:border-amber-900/50 bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -207,7 +216,7 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
               {otherUser?.displayName || otherUser?.userName}
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              {isOnline ? t('friends.chat.online') : t('friends.chat.offline')}
+              {isOnline ? t("friends.chat.online") : t("friends.chat.offline")}
             </p>
           </div>
         </div>
@@ -224,7 +233,7 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
       {/* Messages */}
       <ScrollArea
         ref={scrollRef}
-        className="flex-1 min-h-0 p-3 lg:p-4 bg-linear-to-b from-white to-amber-50/30 dark:from-zinc-900 dark:to-zinc-900"
+        className="flex-1 min-h-0 overflow-hidden p-3 lg:p-4 bg-linear-to-b from-white to-amber-50/30 dark:from-zinc-900 dark:to-zinc-900"
       >
         {isLoading ? (
           <div className="space-y-4 p-4">
@@ -245,10 +254,10 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
               <MessageSquare className="h-8 w-8 text-amber-600 dark:text-amber-400" />
             </div>
             <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-2">
-              {t('friends.chat.startChat')}
+              {t("friends.chat.startChat")}
             </h3>
             <p className="text-amber-600 dark:text-amber-400 text-center max-w-xs">
-              {t('friends.chat.noMessagesYet')}
+              {t("friends.chat.noMessagesYet")}
             </p>
           </div>
         ) : (
@@ -267,7 +276,8 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
                 <div className="space-y-3">
                   {messages.map((message, index) => {
                     // Mesaj gönderen ID'si current user ID ile eşleşirse sağda göster
-                    const isOwn = currentUser?.id && message.senderId === currentUser.id;
+                    const isOwn =
+                      currentUser?.id && message.senderId === currentUser.id;
                     const isRead = message.isRead ?? false;
                     const showAvatar =
                       !isOwn &&
@@ -315,7 +325,9 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
                           </p>
                           <div
                             className={`flex items-center justify-end gap-1 mt-1 ${
-                              isOwn ? "text-amber-100" : "text-amber-500 dark:text-amber-400"
+                              isOwn
+                                ? "text-amber-100"
+                                : "text-amber-500 dark:text-amber-400"
                             }`}
                           >
                             <span className="text-[10px]">
@@ -339,10 +351,10 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
                                   <TooltipContent>
                                     <p>
                                       {message.status === "sending"
-                                        ? t('friends.chat.sending')
+                                        ? t("friends.chat.sending")
                                         : isRead
-                                          ? t('friends.chat.read')
-                                          : t('friends.chat.sent')}
+                                          ? t("friends.chat.read")
+                                          : t("friends.chat.sent")}
                                     </p>
                                   </TooltipContent>
                                 </Tooltip>
@@ -361,12 +373,12 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-3 lg:p-4 border-t border-amber-100 dark:border-amber-900/50 bg-white dark:bg-zinc-900">
+      <div className="shrink-0 p-3 lg:p-4 border-t border-amber-100 dark:border-amber-900/50 bg-white dark:bg-zinc-900">
         <div className="flex gap-3 items-end">
           <div className="flex-1 relative">
             <Input
               ref={inputRef}
-              placeholder={t('friends.chat.inputPlaceholder')}
+              placeholder={t("friends.chat.inputPlaceholder")}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyPress={handleKeyPress}

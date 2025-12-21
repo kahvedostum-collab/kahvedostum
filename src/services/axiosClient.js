@@ -86,7 +86,11 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Login endpoint'i için 401 hatasında token refresh yapma
+    // Çünkü bu hata "geçersiz kullanıcı/şifre" anlamına geliyor, token expired değil
+    const isLoginRequest = originalRequest.url?.includes('/Auth/Login');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       if (isRefreshing) {
         // Queue'ya alınan request'lerde de _retry işaretle (tekrar refresh loop'a girmemesi için)
         originalRequest._retry = true;

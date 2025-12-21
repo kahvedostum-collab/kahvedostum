@@ -43,7 +43,14 @@
       "submitting": "Signing in...",
       "noAccount": "Don't have an account?",
       "signupLink": "Sign Up Now",
-      "success": "Successfully signed in! Redirecting..."
+      "success": "Successfully signed in! Redirecting...",
+      "error": "Login failed. Please check your credentials.",
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 6 characters"
+      }
     },
     "signup": {
       "title": "Create Account",
@@ -63,7 +70,9 @@
       "hasAccount": "Already have an account?",
       "loginLink": "Sign In",
       "passwordMismatch": "Passwords do not match!",
-      "acceptTerms": "Please accept the terms of service!"
+      "acceptTerms": "Please accept the terms of service!",
+      "success": "Account created successfully! You can now sign in.",
+      "error": "Registration failed. Please try again."
     },
     "forgotPassword": {
       "title": "Forgot Password?",
@@ -130,11 +139,39 @@
     "capture": "Take Photo",
     "retake": "Retake",
     "send": "Send",
+    "submit": "Submit",
     "continue": "Continue",
+    "back": "Back",
     "submitting": "Sending...",
     "uploading": "Uploading...",
     "loading": "Loading camera...",
     "switchCamera": "Switch Camera",
+    "selectMethod": {
+      "title": "How to Add Receipt?",
+      "description": "Choose a method to add your receipt photo",
+      "takePhoto": "Take Photo",
+      "selectPhoto": "Select from Gallery",
+      "takePhotoDesc": "Capture receipt with camera",
+      "selectPhotoDesc": "Choose existing receipt from gallery"
+    },
+    "preview": {
+      "title": "Photo Preview",
+      "description": "Review the photo and submit"
+    },
+    "processing": {
+      "title": "Processing Receipt",
+      "init": "Initializing...",
+      "uploading": "Uploading...",
+      "processing": "Processing...",
+      "done": "Receipt processed successfully!",
+      "failed": "Receipt processing failed"
+    },
+    "error": {
+      "title": "Error Occurred",
+      "description": "There was a problem processing the receipt",
+      "cancel": "Close",
+      "tryAgain": "Try Again"
+    },
     "receipt": {
       "title": "Receipt Information",
       "taxNumber": "Tax Number",
@@ -159,7 +196,10 @@
     "errors": {
       "cameraPermission": "Camera permission denied or camera not found.",
       "notAccessible": "Camera not accessible",
-      "uploadFailed": "An error occurred while uploading the photo"
+      "uploadFailed": "An error occurred while uploading the photo",
+      "processingFailed": "An error occurred while processing receipt",
+      "invalidFileType": "Please select a valid image file",
+      "fileTooLarge": "File size too large (max 10MB)"
     },
     "confirm": {
       "title": "Camera Permission Required",
@@ -168,6 +208,58 @@
       "privacyNote": "Your photos are only used for receipt scanning",
       "accept": "Continue",
       "decline": "Cancel"
+    }
+  },
+  "cafe": {
+    "users": {
+      "title": "Active Users",
+      "subtitle": "Other users at this cafe",
+      "activeUsers": "Users at Cafe",
+      "empty": "No active users yet",
+      "loading": "Loading users...",
+      "remaining": "Time remaining",
+      "sessionExpired": "Your session has expired",
+      "user": "User",
+      "active": "Active",
+      "userCount": "users",
+      "minutes": " min",
+      "hours": " hr ",
+      "expired": "Expired",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "connectionError": "Connection failed",
+      "retry": "Retry",
+      "exit": "Exit",
+      "extendTime": "Extend Time",
+      "extendTimeWarning": "Don't forget to scan another receipt to extend your time.",
+      "matchRequest": "Match",
+      "matchRequestTitle": "Match Request",
+      "matchRequestDescription": "Would you like to send a match request to User #{{userId}}?",
+      "matchRequestSent": "Match request sent!",
+      "matchRequestError": "Failed to send match request",
+      "sendRequest": "Send Request",
+      "sending": "Sending...",
+      "tabActive": "Active",
+      "tabMatches": "Matches",
+      "tabIncoming": "Incoming",
+      "tabOutgoing": "Outgoing",
+      "myMatches": "My Matches",
+      "matchCount": "matches",
+      "noMatches": "No matches yet",
+      "matched": "Matched",
+      "incomingRequests": "Incoming Requests",
+      "noIncoming": "No incoming requests",
+      "outgoingRequests": "Outgoing Requests",
+      "noOutgoing": "No outgoing requests",
+      "pending": "Pending",
+      "accept": "Accept",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "requestAccepted": "Match request accepted!",
+      "requestRejected": "Match request rejected",
+      "requestCancelled": "Request cancelled",
+      "requestError": "Operation failed",
+      "infoText": "You can see other users at this cafe. Send a match request to make new friends."
     }
   },
   "profile": {

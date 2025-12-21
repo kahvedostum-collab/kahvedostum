@@ -23,11 +23,30 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLogged } = useAuth();
-  const { isLoading, error } = useSelector((state) => state.kahvedostumslice);
+  const { isLoading } = useSelector((state) => state.kahvedostumslice);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const validateForm = () => {
+    if (!email.trim()) {
+      toast.error(t("auth.login.validation.emailRequired"));
+      return false;
+    }
+
+    if (!password) {
+      toast.error(t("auth.login.validation.passwordRequired"));
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast.error(t("auth.login.validation.passwordMinLength"));
+      return false;
+    }
+
+    return true;
+  };
 
   // Zaten giriş yapılmışsa dashboard'a yönlendir
   useEffect(() => {
@@ -36,12 +55,23 @@ const Login = () => {
     }
   }, [isLogged, navigate]);
 
-  const handleSubmit = async () => {
-    const response = await dispatch(LoginAPI({ email, password }));
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
 
-    if (response == 200) {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      // unwrap() metodu thunk rejected olursa throw eder
+      // Böylece catch bloğu hatayı yakalayabilir
+      await dispatch(LoginAPI({ email, password })).unwrap();
       toast.success(t("auth.login.success"));
       navigate("/");
+    } catch (err) {
+      // rejectWithValue'dan gelen payload burada err olarak gelir
+      const errorMessage = err?.error?.message || err?.message || t("auth.login.error");
+      toast.error(errorMessage);
     }
   };
 
@@ -170,12 +200,6 @@ const Login = () => {
                 </button>
               </div>
             </div>
-
-            {error && (
-              <div className="p-3 text-sm text-red-800 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg">
-                {error}
-              </div>
-            )}
 
             <Button
               type="button"

@@ -67,19 +67,17 @@ export const markMessagesAsSeen = createAsyncThunk(
 
 export const MessagesReducer = (builder) => {
   builder
-    // sendMessage
+    // sendMessage - isLoading kullanma, ChatView'da isSending local state var
     .addCase(sendMessage.pending, (state) => {
-      state.messages.isLoading = true;
+      // Mesaj gönderilirken mevcut mesajları gizlememek için isLoading kullanmıyoruz
     })
     .addCase(sendMessage.fulfilled, (state, action) => {
-      state.messages.isLoading = false;
       const newMessage = action.payload?.data || action.payload;
       if (newMessage) {
         state.messages.activeMessages.push(newMessage);
       }
     })
     .addCase(sendMessage.rejected, (state, action) => {
-      state.messages.isLoading = false;
       state.messages.error = action.payload?.error?.message || 'Mesaj gönderilemedi';
     })
     // fetchConversations

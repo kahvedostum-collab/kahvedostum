@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.0",
     "@pqina/pintura": "^8.95.3",
     "@pqina/react-pintura": "^9.0.4",
     "@radix-ui/react-accordion": "^1.2.12",

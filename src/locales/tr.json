@@ -43,7 +43,14 @@
       "submitting": "Giriş yapılıyor...",
       "noAccount": "Hesabınız yok mu?",
       "signupLink": "Hemen Kayıt Olun",
-      "success": "Başarıyla giriş yapıldı! Yönlendiriliyorsunuz..."
+      "success": "Başarıyla giriş yapıldı! Yönlendiriliyorsunuz...",
+      "error": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.",
+      "validation": {
+        "emailRequired": "E-posta adresi gereklidir",
+        "emailInvalid": "Geçerli bir e-posta adresi girin",
+        "passwordRequired": "Şifre gereklidir",
+        "passwordMinLength": "Şifre en az 6 karakter olmalıdır"
+      }
     },
     "signup": {
       "title": "Hesap Oluşturun",
@@ -63,7 +70,9 @@
       "hasAccount": "Zaten hesabınız var mı?",
       "loginLink": "Giriş Yapın",
       "passwordMismatch": "Şifreler eşleşmiyor!",
-      "acceptTerms": "Lütfen kullanım koşullarını kabul edin!"
+      "acceptTerms": "Lütfen kullanım koşullarını kabul edin!",
+      "success": "Hesabınız başarıyla oluşturuldu! Giriş yapabilirsiniz.",
+      "error": "Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin."
     },
     "forgotPassword": {
       "title": "Şifreni mi Unuttun?",
@@ -130,11 +139,39 @@
     "capture": "Fotoğraf Çek",
     "retake": "Tekrar Çek",
     "send": "Gönder",
+    "submit": "Gönder",
     "continue": "Devam Et",
+    "back": "Geri",
     "submitting": "Gönderiliyor...",
     "uploading": "Yükleniyor...",
     "loading": "Kamera yükleniyor...",
     "switchCamera": "Kamerayı Çevir",
+    "selectMethod": {
+      "title": "Fiş Nasıl Eklensin?",
+      "description": "Fiş fotoğrafı eklemek için bir yöntem seçin",
+      "takePhoto": "Fotoğraf Çek",
+      "selectPhoto": "Galeriden Seç",
+      "takePhotoDesc": "Kamera ile fiş fotoğrafı çek",
+      "selectPhotoDesc": "Galeriden mevcut fişi seç"
+    },
+    "preview": {
+      "title": "Fotoğraf Önizleme",
+      "description": "Fotoğrafı kontrol edin ve gönderin"
+    },
+    "processing": {
+      "title": "Fiş İşleniyor",
+      "init": "Başlatılıyor...",
+      "uploading": "Yükleniyor...",
+      "processing": "İşleniyor...",
+      "done": "Fiş başarıyla işlendi!",
+      "failed": "Fiş işlenemedi"
+    },
+    "error": {
+      "title": "Hata Oluştu",
+      "description": "Fiş işlenirken bir sorun oluştu",
+      "cancel": "Kapat",
+      "tryAgain": "Tekrar Dene"
+    },
     "receipt": {
       "title": "Fiş Bilgileri",
       "taxNumber": "Vergi No",
@@ -159,7 +196,10 @@
     "errors": {
       "cameraPermission": "Kamera izni reddedildi veya kamera bulunamadı.",
       "notAccessible": "Kameraya erişilemiyor",
-      "uploadFailed": "Fotoğraf yüklenirken bir hata oluştu"
+      "uploadFailed": "Fotoğraf yüklenirken bir hata oluştu",
+      "processingFailed": "Fiş işlenirken bir hata oluştu",
+      "invalidFileType": "Lütfen geçerli bir görsel dosyası seçin",
+      "fileTooLarge": "Dosya boyutu çok büyük (max 10MB)"
     },
     "confirm": {
       "title": "Kamera İzni Gerekli",
@@ -168,6 +208,58 @@
       "privacyNote": "Fotoğraflarınız sadece fiş tarama için kullanılır",
       "accept": "Devam Et",
       "decline": "Vazgeç"
+    }
+  },
+  "cafe": {
+    "users": {
+      "title": "Aktif Kullanıcılar",
+      "subtitle": "Kafedeki diğer kullanıcılar",
+      "activeUsers": "Kafedeki Kullanıcılar",
+      "empty": "Henüz aktif kullanıcı yok",
+      "loading": "Kullanıcılar yükleniyor...",
+      "remaining": "Kalan süre",
+      "sessionExpired": "Oturumunuz sona erdi",
+      "user": "Kullanıcı",
+      "active": "Aktif",
+      "userCount": "kişi",
+      "minutes": " dk",
+      "hours": " sa ",
+      "expired": "Süresi doldu",
+      "connected": "Bağlı",
+      "disconnected": "Bağlantı kesildi",
+      "connectionError": "Bağlantı kurulamadı",
+      "retry": "Tekrar Dene",
+      "exit": "Çıkış",
+      "extendTime": "Süre Uzat",
+      "extendTimeWarning": "Sürenizin uzatılması için lütfen yeniden fiş okutmayı unutmayınız.",
+      "matchRequest": "Eşleş",
+      "matchRequestTitle": "Eşleşme İsteği",
+      "matchRequestDescription": "Kullanıcı #{{userId}} ile eşleşme isteği göndermek istiyor musunuz?",
+      "matchRequestSent": "Eşleşme isteği gönderildi!",
+      "matchRequestError": "Eşleşme isteği gönderilemedi",
+      "sendRequest": "İstek Gönder",
+      "sending": "Gönderiliyor...",
+      "tabActive": "Aktif",
+      "tabMatches": "Eşleşmeler",
+      "tabIncoming": "Gelen",
+      "tabOutgoing": "Giden",
+      "myMatches": "Eşleşmelerim",
+      "matchCount": "eşleşme",
+      "noMatches": "Henüz eşleşme yok",
+      "matched": "Eşleşildi",
+      "incomingRequests": "Gelen İstekler",
+      "noIncoming": "Gelen istek yok",
+      "outgoingRequests": "Gönderilen İstekler",
+      "noOutgoing": "Gönderilen istek yok",
+      "pending": "Bekliyor",
+      "accept": "Kabul Et",
+      "reject": "Reddet",
+      "cancel": "İptal Et",
+      "requestAccepted": "Eşleşme isteği kabul edildi!",
+      "requestRejected": "Eşleşme isteği reddedildi",
+      "requestCancelled": "İstek iptal edildi",
+      "requestError": "İşlem başarısız oldu",
+      "infoText": "Bu sayfada kafedeki diğer kullanıcıları görebilirsiniz. Eşleşme isteği göndererek yeni arkadaşlar edinebilirsiniz."
     }
   },
   "profile": {

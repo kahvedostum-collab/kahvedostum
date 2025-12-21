@@ -19,6 +19,7 @@ const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const CoffeeFriends = lazy(() => import("@/pages/friends/CoffeeFriends"));
 const Profile = lazy(() => import("@/pages/profile/Profile"));
 const About = lazy(() => import("@/pages/others/About"));
+const CafeHub = lazy(() => import("@/pages/cafe/CafeHub"));
 
 // Loading component
 const PageLoader = () => (
@@ -74,6 +75,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cafe/:channelKey"
+            element={
+              <ProtectedRoute>
+                <CafeHub />
               </ProtectedRoute>
             }
           />

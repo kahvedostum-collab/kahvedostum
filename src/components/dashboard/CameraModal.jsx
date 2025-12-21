@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -9,49 +10,59 @@ import {
   DialogTitle,
 } from "@/components/shacdn/dialog";
 import { Button } from "@/components/shacdn/button";
-import { Input } from "@/components/shacdn/input";
-import { Label } from "@/components/shacdn/label";
 import {
   Camera,
-  Send,
   RotateCcw,
-  Receipt,
   Loader2,
   X,
   SwitchCamera,
+  Image,
   CheckCircle2,
   AlertCircle,
   ShieldCheck,
+  Upload,
 } from "lucide-react";
-import { scanReceipt } from "@/endpoints/receipt/ReceiptAPI";
+import { createReceiptConnection } from "@/services/signalRService";
+import { initReceipt, uploadReceiptFile, completeReceipt } from "@/endpoints/receipt/ReceiptAPI";
 import { toast } from "react-toastify";
+
+// Constants
+const CAFE_ID = 1;
+const DEFAULT_LAT = 41.0082;
+const DEFAULT_LNG = 28.9784;
 
 export function CameraModal({ open, onOpenChange }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [stream, setStream] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [showResult, setShowResult] = useState(false);
-  const [resultStatus, setResultStatus] = useState(null); // 'success' | 'error'
-  const [facingMode, setFacingMode] = useState("environment");
-  const [showReceiptForm, setShowReceiptForm] = useState(false);
-  const [confirmed, setConfirmed] = useState(false); // Onay dialogu için
-  const [receiptData, setReceiptData] = useState({
-    taxNumber: "",
-    address: "",
-    total: "",
-    receiptDate: "",
-    receiptNo: "",
-    brand: "",
-  });
+  const fileInputRef = useRef(null);
 
+  // Step management
+  const [step, setStep] = useState("select"); // 'select' | 'camera' | 'preview' | 'processing' | 'error'
+  const [inputMethod, setInputMethod] = useState(null); // 'camera' | 'file'
+
+  // Camera states
+  const [stream, setStream] = useState(null);
+  const [facingMode, setFacingMode] = useState("environment");
+  const [cameraLoading, setCameraLoading] = useState(false);
+
+  // Image states
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+
+  // Processing states
+  const [processingStatus, setProcessingStatus] = useState(null);
+  const [error, setError] = useState(null);
+
+  // SignalR connection ref
+  const connectionRef = useRef(null);
+  const receiptDataRef = useRef(null);
+
+  // Start camera
   const startCamera = useCallback(
     async (mode = facingMode) => {
-      setLoading(true);
+      setCameraLoading(true);
       setError(null);
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -69,610 +80,708 @@ export function CameraModal({ open, onOpenChange }) {
         console.error("Camera error:", err);
         return null;
       } finally {
-        setLoading(false);
+        setCameraLoading(false);
       }
     },
     [t, facingMode]
   );
 
-
-  const switchCamera = useCallback(async () => {
-    // Mevcut stream'i kapat
+  // Stop camera
+  const stopCamera = useCallback(() => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
-    // facingMode'u değiştir
+  }, [stream]);
+
+  // Switch camera
+  const switchCamera = useCallback(async () => {
+    stopCamera();
     const newMode = facingMode === "environment" ? "user" : "environment";
     setFacingMode(newMode);
-    // Yeni kamerayı başlat
     await startCamera(newMode);
-  }, [stream, facingMode, startCamera]);
+  }, [facingMode, startCamera, stopCamera]);
 
-  // Start camera only after user confirms
+  // Attach stream to video element
   useEffect(() => {
-    let currentStream = null;
-
-    const initializeCamera = async () => {
-      if (open && confirmed) {
-        const mediaStream = await startCamera();
-        currentStream = mediaStream;
-      }
-    };
-
-    initializeCamera();
-
-    return () => {
-      if (currentStream) {
-        currentStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [open, confirmed, startCamera]);
-
-  // Attach stream to video element when both are ready
-  useEffect(() => {
-    if (stream && videoRef.current && !capturedImage) {
+    if (stream && videoRef.current && step === "camera") {
       videoRef.current.srcObject = stream;
     }
-  }, [stream, capturedImage]);
+  }, [stream, step]);
 
-  const handleClose = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+  // Handle input method selection
+  const handleSelectCamera = useCallback(async () => {
+    setInputMethod("camera");
+    setStep("camera");
+    await startCamera();
+  }, [startCamera]);
+
+  const handleSelectFile = useCallback(() => {
+    setInputMethod("file");
+    fileInputRef.current?.click();
+  }, []);
+
+  // Handle file selection from gallery
+  const handleFileSelect = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError(t("camera.errors.invalidFileType"));
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError(t("camera.errors.fileTooLarge"));
+        return;
+      }
+
+      setImageFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCapturedImage(event.target.result);
+        setStep("preview");
+      };
+      reader.readAsDataURL(file);
     }
-    setCapturedImage(null);
-    setError(null);
-    setShowReceiptForm(false);
-    setShowResult(false);
-    setResultStatus(null);
-    setConfirmed(false);
-    setReceiptData({
-      taxNumber: "",
-      address: "",
-      total: "",
-      receiptDate: "",
-      receiptNo: "",
-      brand: "",
-    });
-    onOpenChange(false);
-  }, [stream, onOpenChange]);
+    // Reset file input
+    e.target.value = "";
+  }, [t]);
 
+  // Capture photo from camera
   const capturePhoto = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
-      // Video'nun orijinal boyutlarını kullan
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        // Video'yu olduğu gibi çiz (crop yok)
         ctx.drawImage(video, 0, 0);
-        const imageData = canvas.toDataURL("image/jpeg", 1.0);
+        const imageData = canvas.toDataURL("image/jpeg", 0.9);
         setCapturedImage(imageData);
+
+        // Convert to blob for upload
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const file = new File([blob], "receipt.jpg", { type: "image/jpeg" });
+              setImageFile(file);
+            }
+          },
+          "image/jpeg",
+          0.9
+        );
+
+        stopCamera();
+        setStep("preview");
       }
     }
-  }, []);
+  }, [stopCamera]);
 
-  const retake = useCallback(() => {
+  // Retake photo
+  const retake = useCallback(async () => {
     setCapturedImage(null);
-    setShowReceiptForm(false);
-  }, []);
+    setImageFile(null);
+    setError(null);
+    setProcessingStatus(null);
 
-  const handleReceiptInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setReceiptData((prev) => ({ ...prev, [name]: value }));
-  }, []);
+    if (inputMethod === "camera") {
+      setStep("camera");
+      await startCamera();
+    } else {
+      setStep("select");
+      setInputMethod(null);
+    }
+  }, [inputMethod, startCamera]);
 
-  const handleContinueToForm = useCallback(async () => {
-    if (!capturedImage) return;
+  // Handle SignalR status change
+  const handleStatusChange = useCallback(
+    (msg) => {
+      console.log("ReceiptStatusChanged:", msg);
+      setProcessingStatus(msg.status);
 
-    setSubmitting(true);
+      if (msg.status === "DONE") {
+        // Success - navigate to CafeUsers page
+        toast.success(t("camera.processing.done"));
+
+        // Stop SignalR connection
+        connectionRef.current?.stop();
+        connectionRef.current = null;
+
+        // Close modal and navigate with channelKey
+        const channelKey = receiptDataRef.current?.channelKey;
+        onOpenChange(false);
+        navigate(`/cafe/${channelKey}`, {
+          state: {
+            receiptId: msg.receiptId || receiptDataRef.current?.receiptId,
+            expiresAt: msg.expiresAt,
+            cafeId: CAFE_ID,
+            channelKey: channelKey,
+          },
+        });
+      } else if (msg.status === "FAILED") {
+        setError(msg.rejectReason || t("camera.processing.failed"));
+        setStep("error");
+        toast.error(msg.rejectReason || t("camera.processing.failed"));
+      }
+    },
+    [navigate, onOpenChange, t]
+  );
+
+  // Start receipt processing
+  const startReceiptProcess = useCallback(async () => {
+    if (!imageFile) return;
+
+    setStep("processing");
+    setProcessingStatus("INIT");
     setError(null);
 
     try {
-      // Base64'ü Blob'a dönüştür
-      const base64Data = capturedImage.split(",")[1];
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: "image/jpeg" });
+      // 1. Init receipt
+      console.log("1. Initializing receipt...");
+      const initData = await initReceipt(CAFE_ID, DEFAULT_LAT, DEFAULT_LNG);
+      const { receiptId, channelKey, uploadUrl, bucket, objectKey } = initData;
+      receiptDataRef.current = initData;
 
-      // FormData oluştur
-      const formData = new FormData();
-      formData.append("file", blob, "receipt.jpg");
+      console.log("Receipt initialized:", { receiptId, channelKey });
 
-      // Upload endpoint'ine gönder
-      const response = await fetch("http://91.241.50.213:8901/upload", {
-        method: "POST",
-        body: formData,
+      // 2. Connect SignalR
+      console.log("2. Connecting to SignalR...");
+      const token = localStorage.getItem("accessToken");
+      const connection = createReceiptConnection(token);
+
+      connection.on("ReceiptStatusChanged", handleStatusChange);
+
+      connection.onclose((error) => {
+        console.log("SignalR connection closed:", error);
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
+      connection.onreconnecting((error) => {
+        console.log("SignalR reconnecting:", error);
+      });
 
-      const data = await response.json();
+      await connection.start();
+      console.log("SignalR connected");
 
-      // Token'ı alert ile göster
-      if (data.token) {
-        alert(data.token);
-      }
+      // 3. Join receipt channel
+      await connection.invoke("JoinReceipt", channelKey.toString());
+      console.log("Joined receipt channel:", channelKey);
 
-      setShowReceiptForm(true);
+      connectionRef.current = connection;
+
+      // 4. Upload file
+      setProcessingStatus("UPLOADING");
+      console.log("3. Uploading file to:", uploadUrl);
+      await uploadReceiptFile(uploadUrl, imageFile);
+      console.log("File uploaded successfully");
+
+      // 5. Complete receipt
+      setProcessingStatus("PROCESSING");
+      console.log("4. Completing receipt...");
+      await completeReceipt(receiptId, bucket, objectKey);
+      console.log("Receipt complete called, waiting for SignalR response...");
+
+      // Status updates will come from SignalR
     } catch (err) {
-      console.error("Upload error:", err);
-      setError(err.message || t("camera.errors.uploadFailed"));
-      toast.error(err.message || t("camera.errors.uploadFailed"));
-    } finally {
-      setSubmitting(false);
-    }
-  }, [capturedImage, t]);
+      console.error("Receipt processing error:", err);
+      setError(err.message || t("camera.errors.processingFailed"));
+      setStep("error");
+      toast.error(err.message || t("camera.errors.processingFailed"));
 
-  const handleSubmitReceipt = useCallback(async () => {
-    // Validasyon
-    if (!receiptData.taxNumber || !receiptData.address || !receiptData.total || !receiptData.receiptDate) {
-      toast.error(t("camera.receipt.validationError"));
-      return;
+      // Cleanup SignalR connection
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
+      }
     }
+  }, [imageFile, handleStatusChange, t]);
 
-    setSubmitting(true);
+  // Close modal and cleanup
+  const handleClose = useCallback(() => {
+    stopCamera();
+    setCapturedImage(null);
+    setImageFile(null);
     setError(null);
+    setStep("select");
+    setInputMethod(null);
+    setProcessingStatus(null);
 
-    try {
-      await scanReceipt({
-        taxNumber: receiptData.taxNumber,
-        address: receiptData.address,
-        total: receiptData.total,
-        receiptDate: receiptData.receiptDate,
-        receiptNo: receiptData.receiptNo || undefined,
-        brand: receiptData.brand || undefined,
-        rawText: capturedImage, // Base64 image as raw data
-      });
-
-      setResultStatus("success");
-      setShowResult(true);
-      toast.success(t("camera.receipt.success"));
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.response?.data?.error?.message || t("camera.receipt.error");
-      setError(errorMessage);
-      setResultStatus("error");
-      setShowResult(true);
-      toast.error(errorMessage);
-    } finally {
-      setSubmitting(false);
+    if (connectionRef.current) {
+      connectionRef.current.stop();
+      connectionRef.current = null;
     }
-  }, [receiptData, capturedImage, t]);
+
+    onOpenChange(false);
+  }, [stopCamera, onOpenChange]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
+      }
+    };
+  }, [stopCamera]);
+
+  // Get processing status text
+  const getProcessingText = () => {
+    switch (processingStatus) {
+      case "INIT":
+        return t("camera.processing.init");
+      case "UPLOADING":
+        return t("camera.processing.uploading");
+      case "PROCESSING":
+        return t("camera.processing.processing");
+      default:
+        return t("camera.processing.processing");
+    }
+  };
+
+  // Render select method dialog
+  const renderSelectMethod = () => (
+    <Dialog open={open && step === "select"} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-sm max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
+      >
+        {/* Gradient Header */}
+        <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+
+          <DialogHeader className="relative">
+            <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              {t("camera.selectMethod.title")}
+            </DialogTitle>
+            <DialogDescription className="text-amber-100 mt-1">
+              {t("camera.selectMethod.description")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Selection Options */}
+        <div className="p-4 sm:p-6 space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Take Photo Option */}
+            <button
+              onClick={handleSelectCamera}
+              className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-amber-50 dark:bg-zinc-800 border-2 border-amber-200 dark:border-amber-800 hover:border-amber-400 dark:hover:border-amber-600 transition-all hover:shadow-lg group"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 group-hover:bg-amber-200 dark:group-hover:bg-amber-800/50 transition-colors">
+                <Camera className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-amber-900 dark:text-amber-100">
+                  {t("camera.selectMethod.takePhoto")}
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  {t("camera.selectMethod.takePhotoDesc")}
+                </p>
+              </div>
+            </button>
+
+            {/* Select from Gallery Option */}
+            <button
+              onClick={handleSelectFile}
+              className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 hover:border-amber-400 dark:hover:border-amber-600 transition-all hover:shadow-lg group"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-700 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/30 transition-colors">
+                <Image className="h-8 w-8 text-zinc-600 dark:text-zinc-400 group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  {t("camera.selectMethod.selectPhoto")}
+                </p>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                  {t("camera.selectMethod.selectPhotoDesc")}
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {/* Privacy note */}
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+            <ShieldCheck className="h-5 w-5 text-zinc-600 dark:text-zinc-400 mt-0.5 shrink-0" />
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              {t("camera.confirm.privacyNote")}
+            </p>
+          </div>
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Render camera dialog
+  const renderCamera = () => (
+    <Dialog open={open && step === "camera"} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
+      >
+        {/* Gradient Header */}
+        <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+
+          <DialogHeader className="relative">
+            <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <Camera className="h-5 w-5" />
+              </div>
+              {t("camera.title")}
+            </DialogTitle>
+            <DialogDescription className="text-amber-100 mt-1">
+              {t("camera.description")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
+          <div className="relative w-full aspect-[4/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+            {/* Corner Markers */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-amber-500 rounded-tl-lg z-10" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-amber-500 rounded-tr-lg z-10" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-amber-500 rounded-bl-lg z-10" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-amber-500 rounded-br-lg z-10" />
+
+            {/* Camera Switch Button */}
+            {stream && !cameraLoading && (
+              <button
+                onClick={switchCamera}
+                className="absolute top-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110"
+                aria-label={t("camera.switchCamera")}
+              >
+                <SwitchCamera className="h-5 w-5" />
+              </button>
+            )}
+
+            {cameraLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+                <span className="text-xs text-amber-700 dark:text-amber-300">
+                  {t("camera.loading")}
+                </span>
+              </div>
+            )}
+
+            {!stream && !cameraLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
+                  <Camera className="h-8 w-8 text-zinc-400 dark:text-zinc-500" />
+                </div>
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                  {t("camera.errors.notAccessible")}
+                </span>
+              </div>
+            )}
+
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="h-full w-full object-cover"
+            />
+
+            <canvas ref={canvasRef} className="hidden" />
+          </div>
+
+          <div className="flex justify-center gap-3">
+            <Button
+              onClick={() => {
+                stopCamera();
+                setStep("select");
+                setInputMethod(null);
+              }}
+              variant="outline"
+              size="lg"
+              className="gap-2 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            >
+              <RotateCcw className="h-5 w-5" />
+              {t("camera.back")}
+            </Button>
+            <Button
+              onClick={capturePhoto}
+              disabled={!stream || cameraLoading}
+              size="lg"
+              className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
+            >
+              <Camera className="h-5 w-5" />
+              {t("camera.capture")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Render preview dialog
+  const renderPreview = () => (
+    <Dialog open={open && step === "preview"} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
+      >
+        {/* Gradient Header */}
+        <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+
+          <DialogHeader className="relative">
+            <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              {t("camera.preview.title")}
+            </DialogTitle>
+            <DialogDescription className="text-amber-100 mt-1">
+              {t("camera.preview.description")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div className="relative w-full max-h-[50vh] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800 border-2 border-amber-200 dark:border-amber-800">
+            {capturedImage && (
+              <img
+                src={capturedImage}
+                alt="Captured"
+                className="w-full h-full object-contain"
+              />
+            )}
+          </div>
+
+          <div className="flex justify-center gap-3">
+            <Button
+              onClick={retake}
+              variant="outline"
+              size="lg"
+              className="gap-2 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            >
+              <RotateCcw className="h-5 w-5" />
+              {t("camera.retake")}
+            </Button>
+            <Button
+              onClick={startReceiptProcess}
+              size="lg"
+              className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
+            >
+              <Upload className="h-5 w-5" />
+              {t("camera.submit")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Render processing dialog
+  const renderProcessing = () => (
+    <Dialog open={open && step === "processing"} onOpenChange={() => {}}>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-sm max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
+      >
+        {/* Gradient Header */}
+        <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+
+          <DialogHeader className="relative">
+            <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </div>
+              {t("camera.processing.title")}
+            </DialogTitle>
+            <DialogDescription className="text-amber-100 mt-1">
+              {getProcessingText()}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          {/* Progress indicators */}
+          <div className="space-y-3">
+            <ProcessingStep
+              label={t("camera.processing.init")}
+              status={processingStatus === "INIT" ? "active" : processingStatus ? "done" : "pending"}
+            />
+            <ProcessingStep
+              label={t("camera.processing.uploading")}
+              status={
+                processingStatus === "UPLOADING"
+                  ? "active"
+                  : processingStatus === "PROCESSING"
+                  ? "done"
+                  : "pending"
+              }
+            />
+            <ProcessingStep
+              label={t("camera.processing.processing")}
+              status={processingStatus === "PROCESSING" ? "active" : "pending"}
+            />
+          </div>
+
+          {/* Preview image */}
+          {capturedImage && (
+            <div className="overflow-hidden rounded-xl border-2 border-amber-200 dark:border-amber-800 max-h-[30vh]">
+              <img src={capturedImage} alt="Receipt" className="w-full h-full object-contain" />
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Render error dialog
+  const renderError = () => (
+    <Dialog open={open && step === "error"} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-sm max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-red-200 dark:border-red-800"
+      >
+        {/* Gradient Header */}
+        <div className="relative bg-linear-to-r from-red-500 via-rose-500 to-red-600 px-4 sm:px-6 py-3 sm:py-4">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-white flex items-center gap-2 sm:gap-3 text-base sm:text-lg font-semibold">
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
+              {t("camera.error.title")}
+            </DialogTitle>
+            <DialogDescription className="text-red-100 mt-1">
+              {error || t("camera.error.description")}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div className="flex gap-3">
+            <Button
+              onClick={handleClose}
+              variant="outline"
+              className="flex-1 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
+            >
+              {t("camera.error.cancel")}
+            </Button>
+            <Button
+              onClick={retake}
+              className="flex-1 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+            >
+              {t("camera.error.tryAgain")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <>
-      {/* Confirmation Dialog - shown before camera access */}
-      <Dialog open={open && !confirmed} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-sm max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
-        >
-          {/* Gradient Header */}
-          <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
-
-            <DialogHeader className="relative">
-              <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                {t("camera.confirm.title")}
-              </DialogTitle>
-              <DialogDescription className="text-amber-100 mt-1">
-                {t("camera.confirm.description")}
-              </DialogDescription>
-            </DialogHeader>
-
-            {/* Close button */}
-            <button
-              onClick={() => handleClose()}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Confirmation Content */}
-          <div className="p-4 sm:p-6 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                <Camera className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  {t("camera.confirm.cameraAccess")}
-                </p>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                <ShieldCheck className="h-5 w-5 text-zinc-600 dark:text-zinc-400 mt-0.5 shrink-0" />
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {t("camera.confirm.privacyNote")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                onClick={() => handleClose()}
-                variant="outline"
-                className="flex-1 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-              >
-                {t("camera.confirm.decline")}
-              </Button>
-              <Button
-                onClick={() => setConfirmed(true)}
-                className="flex-1 gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
-              >
-                <Camera className="h-4 w-4" />
-                {t("camera.confirm.accept")}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Camera Dialog - shown after confirmation */}
-      <Dialog open={open && confirmed} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-md max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
-        >
-          {/* Gradient Header */}
-          <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
-
-            <DialogHeader className="relative">
-              <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                  <Camera className="h-5 w-5" />
-                </div>
-                {t("camera.title")}
-              </DialogTitle>
-              <DialogDescription className="text-amber-100 mt-1">
-                {t("camera.description")}
-              </DialogDescription>
-            </DialogHeader>
-
-            {/* Close button */}
-            <button
-              onClick={() => handleClose()}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-            {error && (
-              <div className="rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
-                {error}
-              </div>
-            )}
-
-            <div className="relative w-full max-h-[60vh] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
-              {/* Corner Markers */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-amber-500 rounded-tl-lg z-10" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-amber-500 rounded-tr-lg z-10" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-amber-500 rounded-bl-lg z-10" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-amber-500 rounded-br-lg z-10" />
-
-              {/* Camera Switch Button */}
-              {!capturedImage && stream && !loading && (
-                <button
-                  onClick={switchCamera}
-                  className="absolute top-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-110"
-                  aria-label={t("camera.switchCamera")}
-                >
-                  <SwitchCamera className="h-5 w-5" />
-                </button>
-              )}
-
-              {loading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-                  <span className="text-xs text-amber-700 dark:text-amber-300">
-                    {t("camera.loading")}
-                  </span>
-                </div>
-              )}
-
-              {/* Camera Not Accessible */}
-              {!stream && !loading && !capturedImage && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
-                    <Camera className="h-8 w-8 text-zinc-400 dark:text-zinc-500" />
-                  </div>
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {t("camera.errors.notAccessible")}
-                  </span>
-                </div>
-              )}
-
-              {!capturedImage ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <img
-                  src={capturedImage}
-                  alt="Captured"
-                  className="h-full w-full object-contain"
-                />
-              )}
-
-              <canvas ref={canvasRef} className="hidden" />
-            </div>
-
-            {/* Receipt Form - shown after photo capture */}
-            {capturedImage && showReceiptForm && (
-              <div className="space-y-3 mt-4 p-4 bg-amber-50 dark:bg-zinc-800 rounded-xl border border-amber-200 dark:border-amber-800">
-                <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-2">
-                  <Receipt className="h-4 w-4" />
-                  {t("camera.receipt.title")}
-                </h3>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="taxNumber" className="text-xs text-amber-800 dark:text-amber-200">
-                      {t("camera.receipt.taxNumber")} *
-                    </Label>
-                    <Input
-                      id="taxNumber"
-                      name="taxNumber"
-                      value={receiptData.taxNumber}
-                      onChange={handleReceiptInputChange}
-                      placeholder="1234567890"
-                      className="h-9 text-sm border-amber-300 dark:border-amber-700"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="total" className="text-xs text-amber-800 dark:text-amber-200">
-                      {t("camera.receipt.total")} *
-                    </Label>
-                    <Input
-                      id="total"
-                      name="total"
-                      value={receiptData.total}
-                      onChange={handleReceiptInputChange}
-                      placeholder="180.00"
-                      className="h-9 text-sm border-amber-300 dark:border-amber-700"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="address" className="text-xs text-amber-800 dark:text-amber-200">
-                    {t("camera.receipt.address")} *
-                  </Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    value={receiptData.address}
-                    onChange={handleReceiptInputChange}
-                    placeholder={t("camera.receipt.addressPlaceholder")}
-                    className="h-9 text-sm border-amber-300 dark:border-amber-700"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="receiptDate" className="text-xs text-amber-800 dark:text-amber-200">
-                      {t("camera.receipt.date")} *
-                    </Label>
-                    <Input
-                      id="receiptDate"
-                      name="receiptDate"
-                      type="datetime-local"
-                      value={receiptData.receiptDate}
-                      onChange={handleReceiptInputChange}
-                      className="h-9 text-sm border-amber-300 dark:border-amber-700"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="receiptNo" className="text-xs text-amber-800 dark:text-amber-200">
-                      {t("camera.receipt.receiptNo")}
-                    </Label>
-                    <Input
-                      id="receiptNo"
-                      name="receiptNo"
-                      value={receiptData.receiptNo}
-                      onChange={handleReceiptInputChange}
-                      placeholder="FIS-001"
-                      className="h-9 text-sm border-amber-300 dark:border-amber-700"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="brand" className="text-xs text-amber-800 dark:text-amber-200">
-                    {t("camera.receipt.brand")}
-                  </Label>
-                  <Input
-                    id="brand"
-                    name="brand"
-                    value={receiptData.brand}
-                    onChange={handleReceiptInputChange}
-                    placeholder={t("camera.receipt.brandPlaceholder")}
-                    className="h-9 text-sm border-amber-300 dark:border-amber-700"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-center gap-3">
-              {!capturedImage ? (
-                <Button
-                  onClick={capturePhoto}
-                  disabled={!stream || loading}
-                  size="lg"
-                  className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
-                >
-                  <Camera className="h-5 w-5" />
-                  {t("camera.capture")}
-                </Button>
-              ) : !showReceiptForm ? (
-                <>
-                  <Button
-                    onClick={retake}
-                    variant="outline"
-                    size="lg"
-                    disabled={submitting}
-                    className="gap-2 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                  >
-                    <RotateCcw className="h-5 w-5" />
-                    {t("camera.retake")}
-                  </Button>
-                  <Button
-                    onClick={handleContinueToForm}
-                    size="lg"
-                    disabled={submitting}
-                    className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        {t("camera.uploading")}
-                      </>
-                    ) : (
-                      <>
-                        <Receipt className="h-5 w-5" />
-                        {t("camera.continue")}
-                      </>
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    onClick={retake}
-                    variant="outline"
-                    size="lg"
-                    disabled={submitting}
-                    className="gap-2 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                  >
-                    <RotateCcw className="h-5 w-5" />
-                    {t("camera.retake")}
-                  </Button>
-                  <Button
-                    onClick={handleSubmitReceipt}
-                    size="lg"
-                    disabled={submitting}
-                    className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        {t("camera.submitting")}
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-5 w-5" />
-                        {t("camera.send")}
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Result Dialog */}
-      <Dialog open={showResult} onOpenChange={setShowResult}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-sm max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
-        >
-          {/* Gradient Header */}
-          <div className={`relative px-4 sm:px-6 py-3 sm:py-4 ${
-            resultStatus === "success"
-              ? "bg-linear-to-r from-green-500 via-emerald-500 to-green-600"
-              : "bg-linear-to-r from-red-500 via-rose-500 to-red-600"
-          }`}>
-            <DialogHeader className="relative">
-              <DialogTitle className="text-white flex items-center gap-2 sm:gap-3 text-base sm:text-lg font-semibold">
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                  {resultStatus === "success" ? (
-                    <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                  )}
-                </div>
-                {resultStatus === "success"
-                  ? t("camera.receipt.successTitle")
-                  : t("camera.receipt.errorTitle")}
-              </DialogTitle>
-              <DialogDescription className={`mt-1 text-sm ${
-                resultStatus === "success" ? "text-green-100" : "text-red-100"
-              }`}>
-                {resultStatus === "success"
-                  ? t("camera.receipt.successDescription")
-                  : error || t("camera.receipt.errorDescription")}
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-
-          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-            {capturedImage && resultStatus === "success" && (
-              <div className="overflow-hidden rounded-xl sm:rounded-2xl border-2 border-green-200 dark:border-green-800 max-h-[40vh]">
-                <img src={capturedImage} alt="Receipt" className="w-full h-full object-contain" />
-              </div>
-            )}
-
-            {resultStatus === "success" ? (
-              <Button
-                onClick={() => {
-                  setShowResult(false);
-                  handleClose();
-                }}
-                className="w-full bg-linear-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
-              >
-                {t("camera.receipt.done")}
-              </Button>
-            ) : (
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => {
-                    setShowResult(false);
-                    handleClose();
-                  }}
-                  variant="outline"
-                  className="flex-1 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
-                >
-                  {t("camera.receipt.cancel")}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowResult(false);
-                    setError(null);
-                  }}
-                  className="flex-1 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                >
-                  {t("camera.receipt.tryAgain")}
-                </Button>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {renderSelectMethod()}
+      {renderCamera()}
+      {renderPreview()}
+      {renderProcessing()}
+      {renderError()}
     </>
   );
 }
+
+// Processing step component
+function ProcessingStep({ label, status }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className={`flex h-6 w-6 items-center justify-center rounded-full ${
+          status === "active"
+            ? "bg-amber-500"
+            : status === "done"
+            ? "bg-green-500"
+            : "bg-zinc-300 dark:bg-zinc-600"
+        }`}
+      >
+        {status === "active" ? (
+          <Loader2 className="h-4 w-4 text-white animate-spin" />
+        ) : status === "done" ? (
+          <CheckCircle2 className="h-4 w-4 text-white" />
+        ) : (
+          <div className="h-2 w-2 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+        )}
+      </div>
+      <span
+        className={`text-sm ${
+          status === "active"
+            ? "text-amber-700 dark:text-amber-300 font-medium"
+            : status === "done"
+            ? "text-green-700 dark:text-green-400"
+            : "text-zinc-500 dark:text-zinc-400"
+        }`}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+ProcessingStep.propTypes = {
+  label: PropTypes.string.isRequired,
+  status: PropTypes.oneOf(["pending", "active", "done"]).isRequired,
+};
 
 CameraModal.propTypes = {
   open: PropTypes.bool.isRequired,

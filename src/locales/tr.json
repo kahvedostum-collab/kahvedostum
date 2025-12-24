@@ -34,16 +34,17 @@
     "login": {
       "title": "Hoş Geldiniz",
       "subtitle": "Hesabınıza giriş yapın ve kahve keyfine devam edin",
-      "email": "E-posta",
-      "emailPlaceholder": "ornek@kahvedostum.com",
+      "email": "E-posta veya Kullanıcı Adı",
+      "emailPlaceholder": "ornek@kahvedostum.com veya kullaniciadi",
       "password": "Şifre",
       "passwordPlaceholder": "••••••••",
       "forgotPassword": "Şifremi Unuttum?",
+      "rememberMe": "Beni Hatırla",
       "submit": "Giriş Yap",
       "submitting": "Giriş yapılıyor...",
       "noAccount": "Hesabınız yok mu?",
       "signupLink": "Hemen Kayıt Olun",
-      "success": "Başarıyla giriş yapıldı! Yönlendiriliyorsunuz...",
+      "success": "Başarıyla giriş yapıldı! ...",
       "error": "Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.",
       "validation": {
         "emailRequired": "E-posta adresi gereklidir",
@@ -59,6 +60,8 @@
       "firstNamePlaceholder": "Ahmet",
       "lastName": "Soyad",
       "lastNamePlaceholder": "Yılmaz",
+      "userName": "Kullanıcı Adı",
+      "userNamePlaceholder": "kahvesever123",
       "email": "E-posta",
       "emailPlaceholder": "ornek@kahvedostum.com",
       "password": "Şifre",
@@ -122,7 +125,11 @@
     "monthlyCoffee": "Aylık Kahve Tüketimi",
     "last6Months": "Son 6 ayın verileri",
     "coffeeTypes": "Kahve Türleri",
-    "distribution": "Tüketim dağılımı"
+    "distribution": "Tüketim dağılımı",
+    "activeCafeSession": "Aktif Cafe Oturumu",
+    "sessionActive": "Oturumunuz devam ediyor. Cafe'ye dönmek için tıklayın.",
+    "returnToCafe": "Cafe'ye Dön",
+    "timeRunningLow": "Süreniz azalıyor!"
   },
   "common": {
     "loading": "Yükleniyor...",
@@ -208,6 +215,14 @@
       "privacyNote": "Fotoğraflarınız sadece fiş tarama için kullanılır",
       "accept": "Devam Et",
       "decline": "Vazgeç"
+    },
+    "activeSession": {
+      "title": "Aktif Cafe Oturumunuz Var",
+      "description": "Mevcut oturumunuz devam ediyor.",
+      "timeRemaining": "Kalan süre",
+      "returnToCafe": "Cafe'ye Dön",
+      "newReceipt": "Yeni Fiş Okut",
+      "warning": "Yeni fiş okutursanız mevcut oturumunuz sonlandırılır."
     }
   },
   "cafe": {

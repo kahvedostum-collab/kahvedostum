@@ -34,6 +34,15 @@ const initialState = {
     isLoading: false,
     error: null,
   },
+  // Cafe session state
+  cafe: {
+    cafeId: null,
+    channelKey: null,
+    expiresAt: null,
+    receiptId: null,
+    isConnected: false,
+    users: [],
+  },
 };
 
 const KDSlice = createSlice({
@@ -65,5 +74,10 @@ export const {
   setActiveMessages,
   addMessageToActive,
   clearMessagesError,
+  // Cafe actions
+  setCafeSession,
+  clearCafeSession,
+  setCafeConnected,
+  setCafeUsers,
 } = KDSlice.actions;
 export default KDSlice.reducer;

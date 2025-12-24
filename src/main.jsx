@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
@@ -9,9 +8,23 @@ import store from "./store";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Slide, ToastContainer } from "react-toastify";
+import { injectCafeStore } from "@/services/signalRService";
+import { setCafeSession, setCafeConnected, setCafeUsers } from "@/slice/KDSlice";
+import { loadCafeSession, isSessionExpired, clearCafeSession } from "@/services/cafeStorageService";
+
+// Inject Redux store into SignalR service for global cafe connection management
+injectCafeStore(store, { setCafeConnected, setCafeUsers });
+
+// Hydrate cafe session from localStorage on app start
+const storedSession = loadCafeSession();
+if (storedSession && !isSessionExpired(storedSession)) {
+  store.dispatch(setCafeSession(storedSession));
+} else if (storedSession) {
+  // Session exists but expired - clean up
+  clearCafeSession();
+}
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
         <ThemeProvider>
@@ -39,5 +52,4 @@ createRoot(document.getElementById("root")).render(
         </ThemeProvider>
       </BrowserRouter>
     </Provider>
-  </StrictMode>
 );

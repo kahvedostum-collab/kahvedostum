@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
   CardContent,
@@ -11,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/shacdn/card";
 import { Badge } from "@/components/shacdn/badge";
+import { Button } from "@/components/shacdn/button";
 import {
   ChartContainer,
   ChartTooltip,
@@ -26,11 +26,25 @@ import {
   PieChart,
   ResponsiveContainer,
 } from "recharts";
-import { Users, Coffee, Trophy, TrendingUp, Camera } from "lucide-react";
+import {
+  Users,
+  Coffee,
+  Trophy,
+  TrendingUp,
+  Camera,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 import DefaultLayout from "@/layout/DefaultLayout";
 import { CameraModal } from "@/components/dashboard/CameraModal";
 import { fetchFriends } from "@/endpoints/friends/FriendsAPI";
 import { fetchIncomingRequests } from "@/endpoints/friends/FriendRequestsAPI";
+import { setCafeSession } from "@/slice/KDSlice";
+import {
+  loadCafeSession,
+  isSessionExpired,
+  getSessionTimeRemaining,
+} from "@/services/cafeStorageService";
 
 // Fake data for charts
 const monthlyData = [
@@ -79,23 +93,95 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userDetails } = useAuth();
   const friends = useSelector((state) => state.kahvedostumslice.friends);
+  const userDetails = useSelector((state) => state.kahvedostumslice.userDetails);
+  const cafeState = useSelector((state) => state.kahvedostumslice?.cafe || {});
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [activeSession, setActiveSession] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(null);
 
   const FetchRequiredData = async () => {
     dispatch(fetchFriends());
     dispatch(fetchIncomingRequests());
   };
 
+  // Check for active cafe session
+  const checkActiveSession = useCallback(() => {
+    // Check Redux state first
+    if (
+      cafeState.cafeId &&
+      cafeState.expiresAt &&
+      !isSessionExpired({ expiresAt: cafeState.expiresAt })
+    ) {
+      setActiveSession({
+        cafeId: cafeState.cafeId,
+        channelKey: cafeState.channelKey,
+        expiresAt: cafeState.expiresAt,
+      });
+      return;
+    }
+
+    // Then check localStorage
+    const storedSession = loadCafeSession();
+    if (storedSession && !isSessionExpired(storedSession)) {
+      // Sync to Redux
+      dispatch(setCafeSession(storedSession));
+      setActiveSession(storedSession);
+      return;
+    }
+
+    // No active session
+    setActiveSession(null);
+  }, [cafeState, dispatch]);
+
   useEffect(() => {
     FetchRequiredData();
+    checkActiveSession();
   }, []);
 
-  const friendsCount = friends && friends.list?.length || 0;
-  const incomingCount = friends && friends.incomingRequests?.length || 0;
-  const displayName =
-    userDetails?.displayName || userDetails?.userName || t("dashboard.welcome");
+  // Update timer for active session
+  useEffect(() => {
+    if (!activeSession?.expiresAt) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const updateTimer = () => {
+      const remaining = getSessionTimeRemaining(activeSession);
+      setTimeRemaining(remaining);
+
+      if (remaining?.expired) {
+        setActiveSession(null);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeSession]);
+
+  // Handle return to cafe
+  const handleReturnToCafe = useCallback(() => {
+    if (activeSession) {
+      navigate(`/cafe/${activeSession.channelKey}`, {
+        state: activeSession,
+      });
+    }
+  }, [activeSession, navigate]);
+
+  // Format time for display
+  const formatTime = (time) => {
+    if (!time || time.expired) return "00:00";
+    return `${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`;
+  };
+
+  const friendsCount = (friends && friends.list?.length) || 0;
+  const incomingCount = (friends && friends.incomingRequests?.length) || 0;
+  const userData = userDetails?.data;
+  const displayName = userData?.firstName && userData?.lastName
+    ? `${userData.firstName} ${userData.lastName}`.trim()
+    : userData?.userName || t("dashboard.welcome");
 
   return (
     <DefaultLayout>
@@ -117,6 +203,53 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Active Cafe Session Banner */}
+          {activeSession && timeRemaining && !timeRemaining.expired && (
+            <Card
+              className="border-2 border-emerald-300 dark:border-emerald-700 shadow-lg bg-linear-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all duration-300 overflow-hidden"
+              onClick={handleReturnToCafe}
+            >
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 animate-pulse">
+                      <Coffee className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-300">
+                        {t("dashboard.activeCafeSession")}
+                      </h3>
+                      <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                        {t("dashboard.sessionActive")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-zinc-800/80">
+                      <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      <span
+                        className={`text-xl font-bold font-mono ${
+                          timeRemaining.minutes < 5
+                            ? "text-red-600 dark:text-red-400 animate-pulse"
+                            : "text-emerald-700 dark:text-emerald-300"
+                        }`}
+                      >
+                        {formatTime(timeRemaining)}
+                      </span>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                    >
+                      {t("dashboard.returnToCafe")}
+                      <ArrowRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Friends Card */}
           <Card
@@ -312,21 +445,23 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Camera FAB */}
-      <button
-        onClick={() => setIsCameraOpen(true)}
-        className="fixed bottom-6 right-6 z-50 group"
-        aria-label={t("camera.title")}
-      >
-        {/* Pulse rings */}
-        <span className="absolute inset-0 rounded-full bg-amber-500/30 animate-ping" />
-        <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-pulse" />
+      {/* Camera FAB - only show when no active session (FloatingCafeButton takes this position) */}
+      {(!activeSession || timeRemaining?.expired) && (
+        <button
+          onClick={() => setIsCameraOpen(true)}
+          className="fixed bottom-20 right-6 z-50 group"
+          aria-label={t("camera.title")}
+        >
+          {/* Pulse rings */}
+          <span className="absolute inset-0 rounded-full bg-amber-500/30 animate-ping" />
+          <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-pulse" />
 
-        {/* Button */}
-        <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-amber-500/40">
-          <Camera className="h-6 w-6 transition-transform group-hover:rotate-12" />
-        </span>
-      </button>
+          {/* Button */}
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-amber-500/40">
+            <Camera className="h-6 w-6 transition-transform group-hover:rotate-12" />
+          </span>
+        </button>
+      )}
 
       {/* Camera Modal */}
       <CameraModal open={isCameraOpen} onOpenChange={setIsCameraOpen} />

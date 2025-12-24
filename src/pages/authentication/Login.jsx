@@ -18,6 +18,8 @@ import { LoginAPI } from "@/endpoints/authentication/LoginAPI";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-toastify";
 
+const REMEMBER_ME_KEY = "kahvedostum_remembered_email";
+
 const Login = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -28,6 +30,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const validateForm = () => {
     if (!email.trim()) {
@@ -48,6 +51,15 @@ const Login = () => {
     return true;
   };
 
+  // localStorage'dan kayıtlı e-postayı yükle
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(REMEMBER_ME_KEY);
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   // Zaten giriş yapılmışsa dashboard'a yönlendir
   useEffect(() => {
     if (isLogged) {
@@ -66,6 +78,14 @@ const Login = () => {
       // unwrap() metodu thunk rejected olursa throw eder
       // Böylece catch bloğu hatayı yakalayabilir
       await dispatch(LoginAPI({ email, password })).unwrap();
+
+      // Beni Hatırla: e-postayı kaydet veya sil
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_ME_KEY, email);
+      } else {
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
+
       toast.success(t("auth.login.success"));
       navigate("/");
     } catch (err) {
@@ -199,6 +219,22 @@ const Login = () => {
                   )}
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer"
+              />
+              <Label
+                htmlFor="rememberMe"
+                className="ml-2 text-sm text-amber-800 dark:text-amber-300 cursor-pointer select-none"
+              >
+                {t("auth.login.rememberMe")}
+              </Label>
             </div>
 
             <Button

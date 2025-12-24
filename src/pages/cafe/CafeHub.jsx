@@ -3,10 +3,20 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import DefaultLayout from "@/layout/DefaultLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/shacdn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/shacdn/card";
 import { Badge } from "@/components/shacdn/badge";
 import { Button } from "@/components/shacdn/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shacdn/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/shacdn/tabs";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +44,20 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { createCafeConnection } from "@/services/signalRService";
+import {
+  connectToCafe,
+  disconnectFromCafe,
+  isCafeConnected,
+} from "@/services/signalRService";
+import {
+  clearCafeSession,
+  setCafeSession,
+} from "@/slice/KDSlice";
+import {
+  loadCafeSession,
+  clearCafeSession as clearStoredSession,
+  isSessionExpired,
+} from "@/services/cafeStorageService";
 import { CameraModal } from "@/components/dashboard/CameraModal";
 import { toast } from "react-toastify";
 
@@ -53,21 +76,57 @@ export default function CafeHub() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { channelKey: _channelKey } = useParams();
+  const { channelKey: urlChannelKey } = useParams();
 
   // Redux state
-  const friends = useSelector((state) => state.KDSlice?.friends || {});
+  const friends = useSelector((state) => state.kahvedostumslice?.friends || {});
+  const cafeState = useSelector((state) => state.kahvedostumslice?.cafe || {});
 
-  // Get state from navigation (cafeId is needed for JoinCafe)
-  const { expiresAt, cafeId } = location.state || { cafeId: 1 };
+  // Get cafe info from Redux state, localStorage, or navigation state (priority order)
+  // NOT: Dispatch burada yapılmıyor - main.jsx'te hydration zaten yapılıyor
+  const getCafeInfo = useCallback(() => {
+    // First try Redux state
+    if (cafeState.cafeId && cafeState.expiresAt) {
+      return {
+        cafeId: cafeState.cafeId,
+        expiresAt: cafeState.expiresAt,
+        channelKey: cafeState.channelKey,
+      };
+    }
 
-  // State
-  const [users, setUsers] = useState([]);
+    // Then try localStorage (dispatch main.jsx'te yapılıyor)
+    const storedSession = loadCafeSession();
+    if (storedSession) {
+      return storedSession;
+    }
+
+    // Finally fallback to navigation state
+    const navState = location.state || {};
+    if (navState.cafeId) {
+      return {
+        cafeId: navState.cafeId,
+        expiresAt: navState.expiresAt,
+        channelKey: urlChannelKey || navState.channelKey,
+      };
+    }
+
+    // Session bulunamadı - null döndür
+    return null;
+  }, [cafeState, location.state, urlChannelKey]);
+
+  const cafeInfo = getCafeInfo();
+  const expiresAt = cafeInfo?.expiresAt;
+  const cafeId = cafeInfo?.cafeId;
+
+  // State - users now come from Redux, but keep local loading/error state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [connected, setConnected] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [activeTab, setActiveTab] = useState("active");
+
+  // Get users and connected status from Redux
+  const users = cafeState.users || [];
+  const connected = cafeState.isConnected || false;
 
   // Camera modal state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -77,8 +136,7 @@ export default function CafeHub() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [sendingRequest, setSendingRequest] = useState(false);
 
-  // SignalR connection ref
-  const connectionRef = useRef(null);
+  // Timer ref
   const timerRef = useRef(null);
 
   // Calculate time remaining
@@ -106,60 +164,37 @@ export default function CafeHub() {
   };
 
   // Check if time is running low (less than 5 minutes)
-  const isTimeLow = timeRemaining && !timeRemaining.expired && timeRemaining.minutes < 5;
+  const isTimeLow =
+    timeRemaining && !timeRemaining.expired && timeRemaining.minutes < 5;
 
-  // Handle SignalR users update
-  const handleUsersUpdate = useCallback((activeUsers) => {
-    console.log("CafeActiveUsers received:", activeUsers);
-    setUsers(activeUsers || []);
-    setLoading(false);
-  }, []);
-
-  // Connect to CafeHub
+  // Connect to CafeHub using global connection
   const connectToCafeHub = useCallback(async () => {
+    // Geçerli cafeId yoksa bağlanma
+    if (!cafeId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        throw new Error("No access token");
+      // Check if session is expired
+      if (expiresAt && isSessionExpired({ expiresAt })) {
+        dispatch(clearCafeSession());
+        clearStoredSession();
+        navigate("/dashboard", { replace: true });
+        return;
       }
 
-      const connection = createCafeConnection(token);
-
-      connection.on("CafeActiveUsers", handleUsersUpdate);
-
-      connection.onclose((err) => {
-        console.log("CafeHub connection closed:", err);
-        setConnected(false);
-      });
-
-      connection.onreconnecting((err) => {
-        console.log("CafeHub reconnecting:", err);
-        setConnected(false);
-      });
-
-      connection.onreconnected((connectionId) => {
-        console.log("CafeHub reconnected:", connectionId);
-        setConnected(true);
-        connection.invoke("JoinCafe", parseInt(cafeId, 10)).catch(console.error);
-      });
-
-      await connection.start();
-      console.log("CafeHub connected");
-
-      await connection.invoke("JoinCafe", parseInt(cafeId, 10));
-      console.log("Joined cafe:", cafeId);
-
-      connectionRef.current = connection;
-      setConnected(true);
+      await connectToCafe(parseInt(cafeId, 10));
+      setLoading(false);
     } catch (err) {
       console.error("CafeHub connection error:", err);
       setError(err.message || t("cafe.users.connectionError"));
       setLoading(false);
     }
-  }, [cafeId, handleUsersUpdate, t]);
+  }, [cafeId, expiresAt, dispatch, navigate, t]);
 
   // Fetch friends data
   const fetchFriendsData = useCallback(() => {
@@ -170,26 +205,40 @@ export default function CafeHub() {
 
   // Initialize connection and fetch data
   useEffect(() => {
+    // Geçerli session yoksa dashboard'a yönlendir
+    if (!cafeInfo || !cafeId) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    // Session süresi dolmuşsa temizle ve yönlendir
+    if (expiresAt && isSessionExpired({ expiresAt })) {
+      dispatch(clearCafeSession());
+      clearStoredSession();
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
     connectToCafeHub();
     fetchFriendsData();
 
-    return () => {
-      if (connectionRef.current) {
-        connectionRef.current.stop();
-        connectionRef.current = null;
-      }
-    };
-  }, [connectToCafeHub, fetchFriendsData]);
+    // No cleanup - global connection persists
+    // Cleanup will happen when user exits or session expires
+  }, [connectToCafeHub, fetchFriendsData, cafeId, expiresAt, navigate, dispatch]);
 
   // Timer for countdown
   useEffect(() => {
     if (!expiresAt) return;
 
-    const updateTimer = () => {
+    const updateTimer = async () => {
       const remaining = calculateTimeRemaining();
       setTimeRemaining(remaining);
 
       if (remaining?.expired) {
+        // Clear session on expiry
+        dispatch(clearCafeSession());
+        clearStoredSession();
+        await disconnectFromCafe();
         toast.info(t("cafe.users.sessionExpired"));
         navigate("/dashboard", { replace: true });
       }
@@ -203,23 +252,20 @@ export default function CafeHub() {
         clearInterval(timerRef.current);
       }
     };
-  }, [expiresAt, calculateTimeRemaining, navigate, t]);
+  }, [expiresAt, calculateTimeRemaining, navigate, t, dispatch]);
 
   // Handle manual exit
-  const handleExit = useCallback(() => {
-    if (connectionRef.current) {
-      connectionRef.current.stop();
-      connectionRef.current = null;
-    }
+  const handleExit = useCallback(async () => {
+    // Clear session and disconnect
+    dispatch(clearCafeSession());
+    clearStoredSession();
+    await disconnectFromCafe();
     navigate("/dashboard", { replace: true });
-  }, [navigate]);
+  }, [navigate, dispatch]);
 
   // Handle reconnect
-  const handleReconnect = useCallback(() => {
-    if (connectionRef.current) {
-      connectionRef.current.stop();
-      connectionRef.current = null;
-    }
+  const handleReconnect = useCallback(async () => {
+    await disconnectFromCafe();
     connectToCafeHub();
   }, [connectToCafeHub]);
 
@@ -253,7 +299,11 @@ export default function CafeHub() {
     async (requestId, accept) => {
       try {
         await dispatch(respondToFriendRequest({ requestId, accept })).unwrap();
-        toast.success(accept ? t("cafe.users.requestAccepted") : t("cafe.users.requestRejected"));
+        toast.success(
+          accept
+            ? t("cafe.users.requestAccepted")
+            : t("cafe.users.requestRejected")
+        );
         dispatch(fetchIncomingRequests());
         if (accept) {
           dispatch(fetchFriends());
@@ -318,13 +368,25 @@ export default function CafeHub() {
     const style = variants[variant];
 
     return (
-      <div className={`group flex items-center gap-4 p-4 rounded-2xl ${style.bg} border ${style.border} transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-amber-300 dark:hover:border-zinc-600`}>
-        <div className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-gradient-to-br ${style.gradient} shadow-lg group-hover:shadow-xl transition-shadow`}>
+      <div
+        className={`group flex items-center gap-4 p-4 rounded-2xl ${style.bg} border ${style.border} transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-amber-300 dark:hover:border-zinc-600`}
+      >
+        <div
+          className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-linear-to-br ${style.gradient} shadow-lg group-hover:shadow-xl transition-shadow`}
+        >
           <User className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`font-semibold ${style.text} truncate text-base sm:text-lg`}>
-            {user.displayName || user.userName || user.senderDisplayName || user.senderUserName || user.receiverDisplayName || user.receiverUserName || `${t("cafe.users.user")} #${user.userId || user.senderId || user.receiverId}`}
+          <p
+            className={`font-semibold ${style.text} truncate text-base sm:text-lg`}
+          >
+            {user.displayName ||
+              user.userName ||
+              user.senderDisplayName ||
+              user.senderUserName ||
+              user.receiverDisplayName ||
+              user.receiverUserName ||
+              `${t("cafe.users.user")} #${user.userId || user.senderId || user.receiverId}`}
           </p>
           {user.badge && (
             <Badge variant="outline" className={`mt-1.5 ${user.badgeClass}`}>
@@ -350,25 +412,57 @@ export default function CafeHub() {
 
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <div className={`flex h-20 w-20 items-center justify-center rounded-2xl ${colors[color]}`}>
+        <div
+          className={`flex h-20 w-20 items-center justify-center rounded-2xl ${colors[color]}`}
+        >
           <Icon className="h-10 w-10" />
         </div>
-        <p className="text-zinc-500 dark:text-zinc-400 text-center">{message}</p>
+        <p className="text-zinc-500 dark:text-zinc-400 text-center">
+          {message}
+        </p>
       </div>
     );
   };
 
   return (
     <DefaultLayout>
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+      <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-
           {/* Header Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-
             {/* Timer Card */}
-            <Card className={`lg:col-span-2 overflow-hidden border-0 shadow-xl ${isTimeLow ? 'bg-gradient-to-br from-red-500 to-rose-600' : 'bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500'}`}>
+            <Card
+              className={`lg:col-span-2 overflow-hidden border-0 shadow-xl ${isTimeLow ? "bg-linear-to-br from-red-500 to-rose-600" : "bg-linear-to-br from-amber-500 via-orange-500 to-rose-500"}`}
+            >
               <CardContent className="p-6 sm:p-8">
+                {/* Cafe Info Band */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
+                  <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                    <Coffee className="h-3 w-3 mr-1" />
+                    Cafe #{cafeId}
+                  </Badge>
+                  <Badge
+                    className={`border-0 backdrop-blur-sm ${
+                      connected
+                        ? "bg-emerald-500/20 text-emerald-100"
+                        : "bg-red-500/20 text-red-100"
+                    }`}
+                  >
+                    {connected ? (
+                      <Wifi className="h-3 w-3 mr-1" />
+                    ) : (
+                      <WifiOff className="h-3 w-3 mr-1" />
+                    )}
+                    {connected
+                      ? t("cafe.users.connected")
+                      : t("cafe.users.disconnected")}
+                  </Badge>
+                  <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                    <Users className="h-3 w-3 mr-1" />
+                    {users.length} {t("cafe.users.userCount")}
+                  </Badge>
+                </div>
+
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                   {/* Timer Display */}
                   <div className="flex items-center gap-4 sm:gap-6">
@@ -379,7 +473,9 @@ export default function CafeHub() {
                       <p className="text-white/80 text-sm sm:text-base font-medium">
                         {t("cafe.users.remaining")}
                       </p>
-                      <p className={`text-4xl sm:text-5xl lg:text-6xl font-bold font-mono text-white tracking-tight ${isTimeLow ? 'animate-pulse' : ''}`}>
+                      <p
+                        className={`text-4xl sm:text-5xl lg:text-6xl font-bold font-mono text-white tracking-tight ${isTimeLow ? "animate-pulse" : ""}`}
+                      >
                         {formatTime(timeRemaining)}
                       </p>
                     </div>
@@ -430,21 +526,33 @@ export default function CafeHub() {
                         <WifiOff className="h-5 w-5 text-red-500" />
                       )}
                       <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                        {connected ? t("cafe.users.connected") : t("cafe.users.disconnected")}
+                        {connected
+                          ? t("cafe.users.connected")
+                          : t("cafe.users.disconnected")}
                       </span>
                     </div>
-                    <div className={`h-3 w-3 rounded-full ${connected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
+                    <div
+                      className={`h-3 w-3 rounded-full ${connected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`}
+                    />
                   </div>
 
                   {/* Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-center">
-                      <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{users.length}</p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300">{t("cafe.users.tabActive")}</p>
+                      <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                        {users.length}
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        {t("cafe.users.tabActive")}
+                      </p>
                     </div>
                     <div className="p-4 rounded-xl bg-pink-50 dark:bg-pink-900/20 text-center">
-                      <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">{friendsList.length}</p>
-                      <p className="text-sm text-pink-700 dark:text-pink-300">{t("cafe.users.tabMatches")}</p>
+                      <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                        {friendsList.length}
+                      </p>
+                      <p className="text-sm text-pink-700 dark:text-pink-300">
+                        {t("cafe.users.tabMatches")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -458,7 +566,9 @@ export default function CafeHub() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400 shrink-0" />
-                  <p className="text-red-700 dark:text-red-300 flex-1">{error}</p>
+                  <p className="text-red-700 dark:text-red-300 flex-1">
+                    {error}
+                  </p>
                   <Button
                     variant="outline"
                     onClick={handleReconnect}
@@ -473,52 +583,64 @@ export default function CafeHub() {
           )}
 
           {/* Tabs Section */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="w-full h-auto p-1.5 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-zinc-200 dark:border-zinc-800 grid grid-cols-4 gap-1.5">
               <TabsTrigger
                 value="active"
-                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-linear-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline font-medium">{t("cafe.users.tabActive")}</span>
+                <span className="hidden sm:inline font-medium">
+                  {t("cafe.users.tabActive")}
+                </span>
                 {users.length > 0 && (
-                  <Badge className="ml-1 h-5 min-w-[20px] px-1.5 bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                  <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
                     {users.length}
                   </Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger
                 value="matches"
-                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-linear-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline font-medium">{t("cafe.users.tabMatches")}</span>
+                <span className="hidden sm:inline font-medium">
+                  {t("cafe.users.tabMatches")}
+                </span>
                 {friendsList.length > 0 && (
-                  <Badge className="ml-1 h-5 min-w-[20px] px-1.5 bg-pink-100 dark:bg-pink-800 text-pink-700 dark:text-pink-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                  <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-pink-100 dark:bg-pink-800 text-pink-700 dark:text-pink-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
                     {friendsList.length}
                   </Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger
                 value="incoming"
-                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline font-medium">{t("cafe.users.tabIncoming")}</span>
+                <span className="hidden sm:inline font-medium">
+                  {t("cafe.users.tabIncoming")}
+                </span>
                 {incomingRequests.length > 0 && (
-                  <Badge className="ml-1 h-5 min-w-[20px] px-1.5 bg-emerald-100 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                  <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-emerald-100 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
                     {incomingRequests.length}
                   </Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger
                 value="outgoing"
-                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="flex items-center justify-center gap-2 py-3 px-2 sm:px-4 rounded-xl data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline font-medium">{t("cafe.users.tabOutgoing")}</span>
+                <span className="hidden sm:inline font-medium">
+                  {t("cafe.users.tabOutgoing")}
+                </span>
                 {outgoingRequests.length > 0 && (
-                  <Badge className="ml-1 h-5 min-w-[20px] px-1.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                  <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
                     {outgoingRequests.length}
                   </Badge>
                 )}
@@ -531,7 +653,7 @@ export default function CafeHub() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-3 text-xl text-zinc-900 dark:text-zinc-100">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-500">
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       {t("cafe.users.activeUsers")}
@@ -546,10 +668,16 @@ export default function CafeHub() {
                   {loading ? (
                     <div className="flex flex-col items-center justify-center py-16 gap-4">
                       <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
-                      <p className="text-zinc-500 dark:text-zinc-400">{t("cafe.users.loading")}</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">
+                        {t("cafe.users.loading")}
+                      </p>
                     </div>
                   ) : users.length === 0 ? (
-                    <EmptyState icon={Users} message={t("cafe.users.empty")} color="amber" />
+                    <EmptyState
+                      icon={Users}
+                      message={t("cafe.users.empty")}
+                      color="amber"
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {users.map((user, index) => (
@@ -558,18 +686,23 @@ export default function CafeHub() {
                           user={{
                             ...user,
                             badge: t("cafe.users.active"),
-                            badgeIcon: <CheckCircle2 className="h-3 w-3 mr-1" />,
-                            badgeClass: "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
+                            badgeIcon: (
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                            ),
+                            badgeClass:
+                              "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
                           }}
                           variant="active"
                           actions={
                             <Button
                               size="sm"
                               onClick={() => handleMatchRequestClick(user)}
-                              className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md"
+                              className="gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md"
                             >
                               <UserPlus className="h-4 w-4" />
-                              <span className="hidden sm:inline">{t("cafe.users.matchRequest")}</span>
+                              <span className="hidden sm:inline">
+                                {t("cafe.users.matchRequest")}
+                              </span>
                             </Button>
                           }
                         />
@@ -586,7 +719,7 @@ export default function CafeHub() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-3 text-xl text-zinc-900 dark:text-zinc-100">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-500">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-pink-500 to-rose-500">
                         <Heart className="h-5 w-5 text-white" />
                       </div>
                       {t("cafe.users.myMatches")}
@@ -603,7 +736,11 @@ export default function CafeHub() {
                       <Loader2 className="h-10 w-10 animate-spin text-pink-500" />
                     </div>
                   ) : friendsList.length === 0 ? (
-                    <EmptyState icon={Heart} message={t("cafe.users.noMatches")} color="pink" />
+                    <EmptyState
+                      icon={Heart}
+                      message={t("cafe.users.noMatches")}
+                      color="pink"
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {friendsList.map((friend, index) => (
@@ -613,7 +750,8 @@ export default function CafeHub() {
                             ...friend,
                             badge: t("cafe.users.matched"),
                             badgeIcon: <UserCheck className="h-3 w-3 mr-1" />,
-                            badgeClass: "border-pink-300 dark:border-pink-700 bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400",
+                            badgeClass:
+                              "border-pink-300 dark:border-pink-700 bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400",
                           }}
                           variant="match"
                         />
@@ -630,7 +768,7 @@ export default function CafeHub() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-3 text-xl text-zinc-900 dark:text-zinc-100">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-500">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-green-500">
                         <UserPlus className="h-5 w-5 text-white" />
                       </div>
                       {t("cafe.users.incomingRequests")}
@@ -647,7 +785,11 @@ export default function CafeHub() {
                       <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
                     </div>
                   ) : incomingRequests.length === 0 ? (
-                    <EmptyState icon={UserPlus} message={t("cafe.users.noIncoming")} color="green" />
+                    <EmptyState
+                      icon={UserPlus}
+                      message={t("cafe.users.noIncoming")}
+                      color="green"
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {incomingRequests.map((request, index) => (
@@ -659,16 +801,22 @@ export default function CafeHub() {
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={() => handleRespondToRequest(request.id, true)}
+                                onClick={() =>
+                                  handleRespondToRequest(request.id, true)
+                                }
                                 className="gap-1 bg-emerald-500 hover:bg-emerald-600 text-white"
                               >
                                 <CheckCircle2 className="h-4 w-4" />
-                                <span className="hidden sm:inline">{t("cafe.users.accept")}</span>
+                                <span className="hidden sm:inline">
+                                  {t("cafe.users.accept")}
+                                </span>
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleRespondToRequest(request.id, false)}
+                                onClick={() =>
+                                  handleRespondToRequest(request.id, false)
+                                }
                                 className="gap-1 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
                                 <X className="h-4 w-4" />
@@ -689,7 +837,7 @@ export default function CafeHub() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-3 text-xl text-zinc-900 dark:text-zinc-100">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-500">
                         <Send className="h-5 w-5 text-white" />
                       </div>
                       {t("cafe.users.outgoingRequests")}
@@ -706,7 +854,11 @@ export default function CafeHub() {
                       <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
                     </div>
                   ) : outgoingRequests.length === 0 ? (
-                    <EmptyState icon={Send} message={t("cafe.users.noOutgoing")} color="blue" />
+                    <EmptyState
+                      icon={Send}
+                      message={t("cafe.users.noOutgoing")}
+                      color="blue"
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {outgoingRequests.map((request, index) => (
@@ -715,7 +867,8 @@ export default function CafeHub() {
                           user={{
                             ...request,
                             badge: t("cafe.users.pending"),
-                            badgeClass: "border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+                            badgeClass:
+                              "border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
                           }}
                           variant="outgoing"
                           actions={
@@ -726,7 +879,9 @@ export default function CafeHub() {
                               className="gap-1 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                               <X className="h-4 w-4" />
-                              <span className="hidden sm:inline">{t("cafe.users.cancel")}</span>
+                              <span className="hidden sm:inline">
+                                {t("cafe.users.cancel")}
+                              </span>
                             </Button>
                           }
                         />
@@ -759,13 +914,15 @@ export default function CafeHub() {
         <DialogContent className="sm:max-w-md max-w-[95vw] bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-zinc-900 dark:text-zinc-100">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-500">
                 <UserPlus className="h-6 w-6 text-white" />
               </div>
               {t("cafe.users.matchRequestTitle")}
             </DialogTitle>
             <DialogDescription className="text-zinc-600 dark:text-zinc-400 text-base">
-              {t("cafe.users.matchRequestDescription", { userId: selectedUser?.userId })}
+              {t("cafe.users.matchRequestDescription", {
+                userId: selectedUser?.userId,
+              })}
             </DialogDescription>
           </DialogHeader>
 
@@ -781,7 +938,7 @@ export default function CafeHub() {
             <Button
               onClick={handleSendMatchRequest}
               disabled={sendingRequest}
-              className="flex-1 gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              className="flex-1 gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
             >
               {sendingRequest ? (
                 <>

@@ -11,6 +11,9 @@ import {
   subscribeToAuthEvents,
 } from "@/services/authService";
 import { logoutAPI } from "@/endpoints/authentication/LogoutAPI";
+import { disconnectFromCafe } from "@/services/signalRService";
+import { clearCafeSession } from "@/services/cafeStorageService";
+import { fetchMe } from "@/endpoints/layout/MeAPI";
 
 const AuthContext = createContext(null);
 
@@ -32,6 +35,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubLogin = subscribeToAuthEvents(AUTH_EVENTS.LOGIN, () => {
       dispatch(setIsLogged(true));
+      // Login sonrası kullanıcı bilgilerini hemen al
+      dispatch(fetchMe());
     });
 
     const unsubLogout = subscribeToAuthEvents(AUTH_EVENTS.LOGOUT, () => {
@@ -69,9 +74,21 @@ export const AuthProvider = ({ children }) => {
     try {
       await logoutAPI();
     } finally {
-      // API başarısız olsa bile local temizlik yap
+      // SignalR bağlantısını kapat (currentCafeId de temizlenir)
+      await disconnectFromCafe();
+
+      // Cafe session localStorage'ını temizle
+      clearCafeSession();
+
+      // Unauthenticated flag'i temizle
+      localStorage.removeItem("Unauthenticated");
+
+      // Redux state'i sıfırla
       dispatch(resetInitialState());
+
+      // Token'ları temizle
       clearTokens();
+
       toast.success("Başarıyla çıkış yapıldı.");
     }
   }, [dispatch]);

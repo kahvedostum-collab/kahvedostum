@@ -22,6 +22,7 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    userName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -49,6 +50,7 @@ const SignUp = () => {
       await registerAPI({
         firstName: formData.firstName,
         lastName: formData.lastName,
+        userName: formData.userName,
         email: formData.email,
         password: formData.password,
       });
@@ -168,6 +170,25 @@ const SignUp = () => {
                   className="h-11 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="userName"
+                className="text-sm font-semibold text-amber-950 dark:text-amber-50"
+              >
+                {t("auth.signup.userName")}
+              </Label>
+              <Input
+                id="userName"
+                name="userName"
+                type="text"
+                placeholder={t("auth.signup.userNamePlaceholder")}
+                value={formData.userName}
+                onChange={handleChange}
+                required
+                className="h-11 border-amber-300 dark:border-amber-800 dark:bg-zinc-800 dark:text-white dark:placeholder:text-amber-500/50"
+              />
             </div>
 
             <div className="space-y-2">

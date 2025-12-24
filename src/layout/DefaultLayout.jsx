@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Header from "@/components/layout/Header";
+import { FloatingCafeButton } from "@/components/cafe/FloatingCafeButton";
 import { fetchMe } from "@/endpoints/layout/MeAPI";
 
 const DefaultLayout = ({ children }) => {
@@ -20,6 +21,8 @@ const DefaultLayout = ({ children }) => {
     <div className="min-h-screen min-w-full flex flex-col bg-white dark:bg-zinc-950 transition-colors duration-300">
       <Header />
       <main className="flex-1">{children}</main>
+      {/* Floating Cafe Button - aktif cafe oturumu varsa gösterilir */}
+      <FloatingCafeButton />
     </div>
   );
 };

@@ -19,6 +19,21 @@ const initialState = {
     isLoading: false,
     error: null,
   },
+  // User details state
+  userDetails: {
+    data: null,
+    isLoading: false,
+    error: null,
+  },
+  // Cafe session state
+  cafe: {
+    cafeId: null,
+    channelKey: null,
+    expiresAt: null,
+    receiptId: null,
+    isConnected: false,
+    users: [],
+  },
 };
 
 const reducers = {
@@ -56,6 +71,28 @@ const reducers = {
   },
   clearMessagesError: (state) => {
     state.messages.error = null;
+  },
+  // Cafe session reducers
+  setCafeSession: (state, action) => {
+    const { cafeId, channelKey, expiresAt, receiptId } = action.payload;
+    state.cafe.cafeId = cafeId;
+    state.cafe.channelKey = channelKey;
+    state.cafe.expiresAt = expiresAt;
+    state.cafe.receiptId = receiptId;
+  },
+  clearCafeSession: (state) => {
+    state.cafe.cafeId = null;
+    state.cafe.channelKey = null;
+    state.cafe.expiresAt = null;
+    state.cafe.receiptId = null;
+    state.cafe.isConnected = false;
+    state.cafe.users = [];
+  },
+  setCafeConnected: (state, action) => {
+    state.cafe.isConnected = action.payload;
+  },
+  setCafeUsers: (state, action) => {
+    state.cafe.users = action.payload;
   },
 };
 

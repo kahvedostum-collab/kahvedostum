@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
   DialogContent,
@@ -21,9 +22,19 @@ import {
   AlertCircle,
   ShieldCheck,
   Upload,
+  Coffee,
+  Clock,
 } from "lucide-react";
-import { createReceiptConnection } from "@/services/signalRService";
+import { createReceiptConnection, disconnectFromCafe } from "@/services/signalRService";
 import { initReceipt, uploadReceiptFile, completeReceipt } from "@/endpoints/receipt/ReceiptAPI";
+import { setCafeSession, clearCafeSession } from "@/slice/KDSlice";
+import {
+  saveCafeSession,
+  loadCafeSession,
+  clearCafeSession as clearStoredSession,
+  isSessionExpired,
+  getSessionTimeRemaining,
+} from "@/services/cafeStorageService";
 import { toast } from "react-toastify";
 
 // Constants
@@ -34,13 +45,18 @@ const DEFAULT_LNG = 28.9784;
 export function CameraModal({ open, onOpenChange }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Step management
-  const [step, setStep] = useState("select"); // 'select' | 'camera' | 'preview' | 'processing' | 'error'
+  // Check for existing active session
+  const cafeState = useSelector((state) => state.kahvedostumslice?.cafe || {});
+
+  // Step management - added 'activeSession' step for warning dialog
+  const [step, setStep] = useState("select"); // 'select' | 'activeSession' | 'camera' | 'preview' | 'processing' | 'error'
   const [inputMethod, setInputMethod] = useState(null); // 'camera' | 'file'
+  const [activeSession, setActiveSession] = useState(null); // Stores existing session info
 
   // Camera states
   const [stream, setStream] = useState(null);
@@ -58,6 +74,56 @@ export function CameraModal({ open, onOpenChange }) {
   // SignalR connection ref
   const connectionRef = useRef(null);
   const receiptDataRef = useRef(null);
+
+  // Check for active session when modal opens
+  useEffect(() => {
+    if (open) {
+      // Check Redux state first
+      if (cafeState.cafeId && cafeState.expiresAt && !isSessionExpired({ expiresAt: cafeState.expiresAt })) {
+        setActiveSession({
+          cafeId: cafeState.cafeId,
+          channelKey: cafeState.channelKey,
+          expiresAt: cafeState.expiresAt,
+        });
+        setStep("activeSession");
+        return;
+      }
+
+      // Then check localStorage
+      const storedSession = loadCafeSession();
+      if (storedSession && !isSessionExpired(storedSession)) {
+        setActiveSession(storedSession);
+        setStep("activeSession");
+        return;
+      }
+
+      // No active session, show normal select screen
+      setStep("select");
+      setActiveSession(null);
+    }
+  }, [open, cafeState]);
+
+  // Handle "Return to Cafe" action
+  const handleReturnToCafe = useCallback(() => {
+    if (activeSession) {
+      onOpenChange(false);
+      navigate(`/cafe/${activeSession.channelKey}`, {
+        state: activeSession,
+      });
+    }
+  }, [activeSession, navigate, onOpenChange]);
+
+  // Handle "Start New Receipt" action
+  const handleStartNewReceipt = useCallback(async () => {
+    // Clear existing session
+    dispatch(clearCafeSession());
+    clearStoredSession();
+    await disconnectFromCafe();
+
+    // Reset state and go to select
+    setActiveSession(null);
+    setStep("select");
+  }, [dispatch]);
 
   // Start camera
   const startCamera = useCallback(
@@ -203,9 +269,14 @@ export function CameraModal({ open, onOpenChange }) {
   const handleStatusChange = useCallback(
     (msg) => {
       console.log("ReceiptStatusChanged:", msg);
-      setProcessingStatus(msg.status);
 
-      if (msg.status === "DONE") {
+      // Backend status field'ı göndermiyorsa, expiresAt varlığını kontrol et
+      const isSuccess = msg.status === "DONE" || msg.expiresAt;
+      const isFailed = msg.status === "FAILED" || msg.rejectReason;
+
+      setProcessingStatus(isSuccess ? "DONE" : (isFailed ? "FAILED" : msg.status));
+
+      if (isSuccess) {
         // Success - navigate to CafeUsers page
         toast.success(t("camera.processing.done"));
 
@@ -213,24 +284,41 @@ export function CameraModal({ open, onOpenChange }) {
         connectionRef.current?.stop();
         connectionRef.current = null;
 
-        // Close modal and navigate with channelKey
+        // Prepare session data - Backend'den gelen cafeId varsa onu kullan
         const channelKey = receiptDataRef.current?.channelKey;
+
+        // Backend expiresAt göndermezse varsayılan 1 saat hesapla
+        const defaultExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+        const sessionData = {
+          receiptId: msg.receiptId || receiptDataRef.current?.receiptId,
+          expiresAt: msg.expiresAt || defaultExpiresAt,
+          cafeId: msg.cafeId || CAFE_ID,
+          channelKey: channelKey,
+        };
+
+        // Save session to localStorage with verification
+        const saveResult = saveCafeSession(sessionData);
+        console.log("CameraModal: Session save result:", saveResult, sessionData);
+        if (!saveResult) {
+          console.error("CameraModal: Failed to save session to localStorage");
+        }
+
+        // Save session to Redux
+        dispatch(setCafeSession(sessionData));
+
+        // Close modal and navigate with channelKey
         onOpenChange(false);
         navigate(`/cafe/${channelKey}`, {
-          state: {
-            receiptId: msg.receiptId || receiptDataRef.current?.receiptId,
-            expiresAt: msg.expiresAt,
-            cafeId: CAFE_ID,
-            channelKey: channelKey,
-          },
+          state: sessionData,
         });
-      } else if (msg.status === "FAILED") {
+      } else if (isFailed) {
         setError(msg.rejectReason || t("camera.processing.failed"));
         setStep("error");
         toast.error(msg.rejectReason || t("camera.processing.failed"));
       }
     },
-    [navigate, onOpenChange, t]
+    [navigate, onOpenChange, t, dispatch]
   );
 
   // Start receipt processing
@@ -250,10 +338,9 @@ export function CameraModal({ open, onOpenChange }) {
 
       console.log("Receipt initialized:", { receiptId, channelKey });
 
-      // 2. Connect SignalR
+      // 2. Connect SignalR (token dinamik olarak alınacak)
       console.log("2. Connecting to SignalR...");
-      const token = localStorage.getItem("accessToken");
-      const connection = createReceiptConnection(token);
+      const connection = createReceiptConnection();
 
       connection.on("ReceiptStatusChanged", handleStatusChange);
 
@@ -342,6 +429,91 @@ export function CameraModal({ open, onOpenChange }) {
       default:
         return t("camera.processing.processing");
     }
+  };
+
+  // Render active session warning dialog
+  const renderActiveSessionWarning = () => {
+    if (!activeSession) return null;
+
+    const timeRemaining = getSessionTimeRemaining(activeSession);
+    const formatTime = (time) => {
+      if (!time || time.expired) return "00:00";
+      return `${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(2, "0")}`;
+    };
+
+    return (
+      <Dialog open={open && step === "activeSession"} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-sm max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
+        >
+          {/* Gradient Header */}
+          <div className="relative bg-linear-to-r from-amber-500 via-orange-500 to-amber-600 px-4 sm:px-6 py-3 sm:py-4">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+
+            <DialogHeader className="relative">
+              <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                  <Coffee className="h-5 w-5" />
+                </div>
+                {t("camera.activeSession.title")}
+              </DialogTitle>
+              <DialogDescription className="text-amber-100 mt-1">
+                {t("camera.activeSession.description")}
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-4 sm:p-6 space-y-4">
+            {/* Time remaining indicator */}
+            <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+              <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="text-sm text-amber-700 dark:text-amber-300">{t("camera.activeSession.timeRemaining")}</p>
+                <p className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">
+                  {formatTime(timeRemaining)}
+                </p>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={handleReturnToCafe}
+                size="lg"
+                className="w-full gap-2 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
+              >
+                <Coffee className="h-5 w-5" />
+                {t("camera.activeSession.returnToCafe")}
+              </Button>
+              <Button
+                onClick={handleStartNewReceipt}
+                variant="outline"
+                size="lg"
+                className="w-full gap-2 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                <Camera className="h-5 w-5" />
+                {t("camera.activeSession.newReceipt")}
+              </Button>
+            </div>
+
+            {/* Warning note */}
+            <p className="text-xs text-center text-zinc-500 dark:text-zinc-400">
+              {t("camera.activeSession.warning")}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   // Render select method dialog
@@ -483,7 +655,7 @@ export function CameraModal({ open, onOpenChange }) {
             </div>
           )}
 
-          <div className="relative w-full aspect-[4/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+          <div className="relative w-full aspect-4/3 overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
             {/* Corner Markers */}
             <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-amber-500 rounded-tl-lg z-10" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-amber-500 rounded-tr-lg z-10" />
@@ -733,6 +905,7 @@ export function CameraModal({ open, onOpenChange }) {
 
   return (
     <>
+      {renderActiveSessionWarning()}
       {renderSelectMethod()}
       {renderCamera()}
       {renderPreview()}

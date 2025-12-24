@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '@/services/axiosClient';
+import { setTokens } from '@/services/authService';
 
 export const LoginAPI = createAsyncThunk(
   'kahvedostumslice/LoginAPIHandler',
@@ -19,8 +20,8 @@ export const LoginAPI = createAsyncThunk(
       );
       if (response.status ===  200) {
         const { accessToken, refreshToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+        // setTokens: localStorage'a kaydeder + AUTH_EVENTS.LOGIN event'ini tetikler
+        setTokens(accessToken, refreshToken);
         return response.status;
       } else {
         return rejectWithValue({ error: { message: 'Invalid credentials' } });

@@ -34,11 +34,12 @@
     "login": {
       "title": "Welcome Back",
       "subtitle": "Sign in to your account and continue enjoying coffee",
-      "email": "Email",
-      "emailPlaceholder": "example@coffeebuddy.com",
+      "email": "Email or Username",
+      "emailPlaceholder": "example@coffeebuddy.com or username",
       "password": "Password",
       "passwordPlaceholder": "••••••••",
       "forgotPassword": "Forgot Password?",
+      "rememberMe": "Remember Me",
       "submit": "Sign In",
       "submitting": "Signing in...",
       "noAccount": "Don't have an account?",
@@ -59,6 +60,8 @@
       "firstNamePlaceholder": "John",
       "lastName": "Last Name",
       "lastNamePlaceholder": "Doe",
+      "userName": "Username",
+      "userNamePlaceholder": "coffeebuddy123",
       "email": "Email",
       "emailPlaceholder": "example@coffeebuddy.com",
       "password": "Password",
@@ -122,7 +125,11 @@
     "monthlyCoffee": "Monthly Coffee Consumption",
     "last6Months": "Last 6 months data",
     "coffeeTypes": "Coffee Types",
-    "distribution": "Consumption distribution"
+    "distribution": "Consumption distribution",
+    "activeCafeSession": "Active Cafe Session",
+    "sessionActive": "Your session is still active. Click to return to cafe.",
+    "returnToCafe": "Return to Cafe",
+    "timeRunningLow": "Time is running low!"
   },
   "common": {
     "loading": "Loading...",
@@ -208,6 +215,14 @@
       "privacyNote": "Your photos are only used for receipt scanning",
       "accept": "Continue",
       "decline": "Cancel"
+    },
+    "activeSession": {
+      "title": "Active Cafe Session",
+      "description": "You have an ongoing cafe session.",
+      "timeRemaining": "Time remaining",
+      "returnToCafe": "Return to Cafe",
+      "newReceipt": "Scan New Receipt",
+      "warning": "Scanning a new receipt will end your current session."
     }
   },
   "cafe": {

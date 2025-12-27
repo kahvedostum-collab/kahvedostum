@@ -1,12 +1,32 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '@/services/axiosClient';
 
-// POST /api/Friends/requests - Arkadaşlık isteği gönder
+
+/* sendFriendRequest REQUEST YAPISI
+***********************************/
+/*
+    {
+      "toUserId": 0
+    }
+*/
+
+
+/* sendFriendRequest RESPONSE YAPISI
+***********************************/
+/*
+    {
+      "success": true,
+      "message": "Arkadaşlık isteği gönderildi.",
+      "data": null,
+      "statusCode": 200
+    }
+*/
+
 export const sendFriendRequest = createAsyncThunk(
   'kahvedostumslice/sendFriendRequest',
   async (targetUserId, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/Friends/requests', { targetUserId });
+      const response = await axios.post('/Friends/requests', { toUserId: targetUserId });
       return response.data;
     } catch (err) {
       return rejectWithValue(
@@ -16,7 +36,15 @@ export const sendFriendRequest = createAsyncThunk(
   }
 );
 
-// POST /api/Friends/requests/{requestId}/cancel - İsteği iptal et
+
+/* cancelFriendRequest REQUEST YAPISI
+***********************************/
+/*
+    {
+      "requestId": 0
+    }
+*/
+
 export const cancelFriendRequest = createAsyncThunk(
   'kahvedostumslice/cancelFriendRequest',
   async (requestId, { rejectWithValue }) => {
@@ -31,7 +59,15 @@ export const cancelFriendRequest = createAsyncThunk(
   }
 );
 
-// POST /api/Friends/requests/{requestId}/respond - İsteğe yanıt ver (kabul/reddet)
+
+/* respondToFriendRequest REQUEST YAPISI
+***********************************/
+/*
+  {
+    "accept": true
+  }
+*/
+
 export const respondToFriendRequest = createAsyncThunk(
   'kahvedostumslice/respondToFriendRequest',
   async ({ requestId, accept }, { rejectWithValue }) => {
@@ -46,7 +82,26 @@ export const respondToFriendRequest = createAsyncThunk(
   }
 );
 
-// GET /api/Friends/requests/incoming - Gelen istekleri getir
+
+/* fetchIncomingRequests RESPONSE YAPISI
+***********************************/
+/*
+    {
+      "success": true,
+      "message": "Gelen arkadaşlık istekleri listelendi.",
+      "data": [
+        {
+          "requestId": 1002,
+          "fromUserId": 5,
+          "fromUserName": "huseyin_yer'_'",
+          "fromUserEmail": "huseyin.yer@resolution7.com",
+          "createdAt": "2025-12-27T21:57:51.0656909"
+        }
+      ],
+      "statusCode": 200
+    }
+*/
+
 export const fetchIncomingRequests = createAsyncThunk(
   'kahvedostumslice/fetchIncomingRequests',
   async (_, { rejectWithValue }) => {
@@ -61,7 +116,25 @@ export const fetchIncomingRequests = createAsyncThunk(
   }
 );
 
-// GET /api/Friends/requests/outgoing - Gönderilen istekleri getir
+/* fetchOutgoingRequests RESPONSE YAPISI
+***********************************/
+/*
+    {
+      "success": true,
+      "message": "Giden arkadaşlık istekleri listelendi.",
+      "data": [
+        {
+          "requestId": 1003,
+          "fromUserId": 1,
+          "fromUserName": "admin",
+          "fromUserEmail": "kahvedostum@gmail.com",
+          "createdAt": "2025-12-27T22:31:12.0772698"
+        }
+      ],
+      "statusCode": 200
+    }
+*/
+
 export const fetchOutgoingRequests = createAsyncThunk(
   'kahvedostumslice/fetchOutgoingRequests',
   async (_, { rejectWithValue }) => {
@@ -100,7 +173,7 @@ export const FriendRequestsReducer = (builder) => {
     .addCase(cancelFriendRequest.fulfilled, (state, action) => {
       state.friends.isLoading = false;
       state.friends.outgoingRequests = state.friends.outgoingRequests.filter(
-        (req) => req.id !== action.payload
+        (req) => req.requestId !== action.payload
       );
     })
     .addCase(cancelFriendRequest.rejected, (state, action) => {
@@ -114,7 +187,7 @@ export const FriendRequestsReducer = (builder) => {
     .addCase(respondToFriendRequest.fulfilled, (state, action) => {
       state.friends.isLoading = false;
       state.friends.incomingRequests = state.friends.incomingRequests.filter(
-        (req) => req.id !== action.payload.requestId
+        (req) => req.requestId !== action.payload.requestId
       );
       // Kabul edildiyse arkadaş listesine ekle
       if (action.payload.accept && action.payload.data?.data) {

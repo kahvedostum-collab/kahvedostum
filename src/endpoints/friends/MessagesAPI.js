@@ -1,7 +1,16 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '@/services/axiosClient';
 
-// POST /api/Messages - Mesaj gönder
+/* sendMessage REQUEST YAPISI
+***********************************/
+/*
+    {
+      "toUserId": 0,
+      "content": "string",
+      "conversationId": 0
+    }
+*/
+
 export const sendMessage = createAsyncThunk(
   'kahvedostumslice/sendMessage',
   async ({ conversationId, content, receiverId }, { rejectWithValue }) => {

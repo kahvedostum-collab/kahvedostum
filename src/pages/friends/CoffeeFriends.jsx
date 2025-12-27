@@ -150,7 +150,6 @@ const DesktopContent = ({
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
       <FriendsPageHeader
         onBack={() => navigate("/dashboard")}
-        onAddFriend={() => setShowAddFriend(true)}
         friendsCount={friendsCount}
         unreadMessagesCount={unreadMessagesCount}
       />

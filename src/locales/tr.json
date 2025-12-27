@@ -171,6 +171,7 @@
       "uploading": "Yükleniyor...",
       "processing": "İşleniyor...",
       "done": "Fiş başarıyla işlendi!",
+      "timeExtended": "Süre başarıyla uzatıldı!",
       "failed": "Fiş işlenemedi"
     },
     "error": {
@@ -404,7 +405,9 @@
       "today": "Bugün",
       "yesterday": "Dün",
       "sendError": "Mesaj gönderilemedi",
-      "noMessage": "Mesaj yok"
+      "noMessage": "Mesaj yok",
+      "viewProfile": "Profili Gör",
+      "clearChat": "Sohbeti Temizle"
     },
     "card": {
       "badge": "Kahve Dostu",

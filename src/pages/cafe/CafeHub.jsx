@@ -43,6 +43,8 @@ import {
   Camera,
   Wifi,
   WifiOff,
+  MessageCircle,
+  UserMinus,
 } from "lucide-react";
 import {
   connectToCafe,
@@ -62,7 +64,7 @@ import { CameraModal } from "@/components/dashboard/CameraModal";
 import { toast } from "react-toastify";
 
 // API imports
-import { fetchFriends } from "@/endpoints/friends/FriendsAPI";
+import { fetchFriends, removeFriend } from "@/endpoints/friends/FriendsAPI";
 import {
   sendFriendRequest,
   fetchIncomingRequests,
@@ -70,6 +72,7 @@ import {
   respondToFriendRequest,
   cancelFriendRequest,
 } from "@/endpoints/friends/FriendRequestsAPI";
+import { fetchConversations } from "@/endpoints/friends/MessagesAPI";
 
 export default function CafeHub() {
   const { t } = useTranslation();
@@ -81,6 +84,8 @@ export default function CafeHub() {
   // Redux state
   const friends = useSelector((state) => state.kahvedostumslice?.friends || {});
   const cafeState = useSelector((state) => state.kahvedostumslice?.cafe || {});
+  const userDetails = useSelector((state) => state.kahvedostumslice?.userDetails?.data);
+  const currentUserId = userDetails?.id || userDetails?.userId;
 
   // Get cafe info from Redux state, localStorage, or navigation state (priority order)
   // NOT: Dispatch burada yapılmıyor - main.jsx'te hydration zaten yapılıyor
@@ -125,7 +130,11 @@ export default function CafeHub() {
   const [activeTab, setActiveTab] = useState("active");
 
   // Get users and connected status from Redux
-  const users = cafeState.users || [];
+  // Filter out current user from the list (don't show yourself)
+  const allUsers = cafeState.users || [];
+  const users = currentUserId
+    ? allUsers.filter(user => user.userId !== currentUserId)
+    : allUsers;
   const connected = cafeState.isConnected || false;
 
   // Camera modal state
@@ -135,6 +144,14 @@ export default function CafeHub() {
   const [matchDialogOpen, setMatchDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [sendingRequest, setSendingRequest] = useState(false);
+
+  // Remove friend dialog state
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  // Messages state
+  const messages = useSelector((state) => state.kahvedostumslice?.messages || {});
 
   // Timer ref
   const timerRef = useRef(null);
@@ -201,6 +218,7 @@ export default function CafeHub() {
     dispatch(fetchFriends());
     dispatch(fetchIncomingRequests());
     dispatch(fetchOutgoingRequests());
+    dispatch(fetchConversations());
   }, [dispatch]);
 
   // Initialize connection and fetch data
@@ -331,10 +349,92 @@ export default function CafeHub() {
     [dispatch, t]
   );
 
+  // Handle remove friend button click
+  const handleRemoveFriendClick = useCallback((friend) => {
+    setSelectedFriend(friend);
+    setRemoveDialogOpen(true);
+  }, []);
+
+  // Handle remove friend confirmation
+  const handleRemoveFriend = useCallback(async () => {
+    if (!selectedFriend) return;
+
+    setIsRemoving(true);
+    try {
+      await dispatch(removeFriend(selectedFriend.userId || selectedFriend.id)).unwrap();
+      toast.success(t("friends.card.removedSuccess"));
+      setRemoveDialogOpen(false);
+      setSelectedFriend(null);
+    } catch (err) {
+      console.error("Remove friend error:", err);
+      toast.error(err?.error?.message || t("common.error"));
+    } finally {
+      setIsRemoving(false);
+    }
+  }, [selectedFriend, dispatch, t]);
+
+  // Handle message click - navigate to messages
+  const handleMessageClick = useCallback((friend) => {
+    const existingConversation = messages.conversations?.find(
+      (c) =>
+        c.otherUser?.id === friend.userId ||
+        c.participant?.id === friend.userId ||
+        c.otherUser?.id === friend.id ||
+        c.participant?.id === friend.id
+    );
+
+    // Navigate to friends page with messages tab and friend info
+    navigate("/friends", {
+      state: {
+        activeTab: "messages",
+        selectedFriend: friend,
+        conversationId: existingConversation?.id || null,
+      },
+    });
+  }, [messages.conversations, navigate]);
+
   // Get data from redux
   const friendsList = friends.list || [];
   const incomingRequests = friends.incomingRequests || [];
   const outgoingRequests = friends.outgoingRequests || [];
+
+  // Create ID sets for filtering - a user should only appear in one tab
+  // Priority: Matches > Incoming > Outgoing > Active
+  const friendIds = new Set(
+    friendsList.map((f) => f.userId || f.id).filter(Boolean)
+  );
+  const incomingIds = new Set(
+    incomingRequests
+      .map((r) => r.senderId || r.fromUserId || r.userId)
+      .filter(Boolean)
+  );
+  const outgoingIds = new Set(
+    outgoingRequests
+      .map((r) => r.receiverId || r.toUserId || r.userId)
+      .filter(Boolean)
+  );
+
+  // Filter active users - exclude those in other tabs
+  const filteredUsers = users.filter((user) => {
+    const id = user.userId || user.id;
+    if (!id) return true;
+    // If user is in friends, incoming, or outgoing - don't show in active
+    return !friendIds.has(id) && !incomingIds.has(id) && !outgoingIds.has(id);
+  });
+
+  // Filter incoming requests - exclude those who are already friends
+  const filteredIncoming = incomingRequests.filter((request) => {
+    const id = request.senderId || request.fromUserId || request.userId;
+    if (!id) return true;
+    return !friendIds.has(id);
+  });
+
+  // Filter outgoing requests - exclude those who are already friends or have incoming request
+  const filteredOutgoing = outgoingRequests.filter((request) => {
+    const id = request.receiverId || request.toUserId || request.userId;
+    if (!id) return true;
+    return !friendIds.has(id) && !incomingIds.has(id);
+  });
 
   // User Card Component
   const UserCard = ({ user, variant = "active", actions }) => {
@@ -386,7 +486,9 @@ export default function CafeHub() {
               user.senderUserName ||
               user.receiverDisplayName ||
               user.receiverUserName ||
-              `${t("cafe.users.user")} #${user.userId || user.senderId || user.receiverId}`}
+              user.fromUserName ||
+              user.toUserName ||
+              `${t("cafe.users.user")} #${user.userId || user.senderId || user.receiverId || user.fromUserId || user.toUserId}`}
           </p>
           {user.badge && (
             <Badge variant="outline" className={`mt-1.5 ${user.badgeClass}`}>
@@ -459,7 +561,7 @@ export default function CafeHub() {
                   </Badge>
                   <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
                     <Users className="h-3 w-3 mr-1" />
-                    {users.length} {t("cafe.users.userCount")}
+                    {filteredUsers.length} {t("cafe.users.userCount")}
                   </Badge>
                 </div>
 
@@ -540,7 +642,7 @@ export default function CafeHub() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-center">
                       <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                        {users.length}
+                        {filteredUsers.length}
                       </p>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
                         {t("cafe.users.tabActive")}
@@ -597,9 +699,9 @@ export default function CafeHub() {
                 <span className="hidden sm:inline font-medium">
                   {t("cafe.users.tabActive")}
                 </span>
-                {users.length > 0 && (
+                {filteredUsers.length > 0 && (
                   <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                    {users.length}
+                    {filteredUsers.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -625,9 +727,9 @@ export default function CafeHub() {
                 <span className="hidden sm:inline font-medium">
                   {t("cafe.users.tabIncoming")}
                 </span>
-                {incomingRequests.length > 0 && (
+                {filteredIncoming.length > 0 && (
                   <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-emerald-100 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                    {incomingRequests.length}
+                    {filteredIncoming.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -639,9 +741,9 @@ export default function CafeHub() {
                 <span className="hidden sm:inline font-medium">
                   {t("cafe.users.tabOutgoing")}
                 </span>
-                {outgoingRequests.length > 0 && (
+                {filteredOutgoing.length > 0 && (
                   <Badge className="ml-1 h-5 min-w-5 px-1.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                    {outgoingRequests.length}
+                    {filteredOutgoing.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -659,7 +761,7 @@ export default function CafeHub() {
                       {t("cafe.users.activeUsers")}
                     </CardTitle>
                     <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-0">
-                      {users.length} {t("cafe.users.userCount")}
+                      {filteredUsers.length} {t("cafe.users.userCount")}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -672,7 +774,7 @@ export default function CafeHub() {
                         {t("cafe.users.loading")}
                       </p>
                     </div>
-                  ) : users.length === 0 ? (
+                  ) : filteredUsers.length === 0 ? (
                     <EmptyState
                       icon={Users}
                       message={t("cafe.users.empty")}
@@ -680,7 +782,7 @@ export default function CafeHub() {
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {users.map((user, index) => (
+                      {filteredUsers.map((user, index) => (
                         <UserCard
                           key={user.userId || index}
                           user={{
@@ -754,6 +856,28 @@ export default function CafeHub() {
                               "border-pink-300 dark:border-pink-700 bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400",
                           }}
                           variant="match"
+                          actions={
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleMessageClick(friend)}
+                                className="gap-1 bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-md"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                                <span className="hidden sm:inline">
+                                  {t("friends.card.message")}
+                                </span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRemoveFriendClick(friend)}
+                                className="gap-1 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          }
                         />
                       ))}
                     </div>
@@ -774,7 +898,7 @@ export default function CafeHub() {
                       {t("cafe.users.incomingRequests")}
                     </CardTitle>
                     <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0">
-                      {incomingRequests.length}
+                      {filteredIncoming.length}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -784,7 +908,7 @@ export default function CafeHub() {
                     <div className="flex flex-col items-center justify-center py-16 gap-4">
                       <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
                     </div>
-                  ) : incomingRequests.length === 0 ? (
+                  ) : filteredIncoming.length === 0 ? (
                     <EmptyState
                       icon={UserPlus}
                       message={t("cafe.users.noIncoming")}
@@ -792,9 +916,9 @@ export default function CafeHub() {
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {incomingRequests.map((request, index) => (
+                      {filteredIncoming.map((request, index) => (
                         <UserCard
-                          key={request.id || index}
+                          key={request.requestId || index}
                           user={request}
                           variant="incoming"
                           actions={
@@ -802,7 +926,7 @@ export default function CafeHub() {
                               <Button
                                 size="sm"
                                 onClick={() =>
-                                  handleRespondToRequest(request.id, true)
+                                  handleRespondToRequest(request.requestId, true)
                                 }
                                 className="gap-1 bg-emerald-500 hover:bg-emerald-600 text-white"
                               >
@@ -815,7 +939,7 @@ export default function CafeHub() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() =>
-                                  handleRespondToRequest(request.id, false)
+                                  handleRespondToRequest(request.requestId, false)
                                 }
                                 className="gap-1 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                               >
@@ -843,7 +967,7 @@ export default function CafeHub() {
                       {t("cafe.users.outgoingRequests")}
                     </CardTitle>
                     <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-0">
-                      {outgoingRequests.length}
+                      {filteredOutgoing.length}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -853,7 +977,7 @@ export default function CafeHub() {
                     <div className="flex flex-col items-center justify-center py-16 gap-4">
                       <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
                     </div>
-                  ) : outgoingRequests.length === 0 ? (
+                  ) : filteredOutgoing.length === 0 ? (
                     <EmptyState
                       icon={Send}
                       message={t("cafe.users.noOutgoing")}
@@ -861,9 +985,9 @@ export default function CafeHub() {
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {outgoingRequests.map((request, index) => (
+                      {filteredOutgoing.map((request, index) => (
                         <UserCard
-                          key={request.id || index}
+                          key={request.requestId || index}
                           user={{
                             ...request,
                             badge: t("cafe.users.pending"),
@@ -875,7 +999,7 @@ export default function CafeHub() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleCancelRequest(request.id)}
+                              onClick={() => handleCancelRequest(request.requestId)}
                               className="gap-1 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                               <X className="h-4 w-4" />
@@ -956,8 +1080,83 @@ export default function CafeHub() {
         </DialogContent>
       </Dialog>
 
-      {/* Camera Modal */}
-      <CameraModal open={isCameraOpen} onOpenChange={setIsCameraOpen} />
+      {/* Remove Friend Confirmation Dialog */}
+      <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-md max-w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-900 border-red-200 dark:border-red-900/50"
+        >
+          {/* Gradient Header */}
+          <div className="relative bg-gradient-to-r from-red-500 via-rose-500 to-red-600 px-6 py-4">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2030%2030%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%2010h10v10H0z%22%20fill%3D%22%23fff%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+            <DialogHeader className="relative">
+              <DialogTitle className="text-white flex items-center gap-3 text-lg font-semibold">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                {t("friends.card.removeFriend")}
+              </DialogTitle>
+              <DialogDescription className="text-red-100 mt-1">
+                {t("friends.card.removeFriendDesc", {
+                  name: selectedFriend?.displayName || selectedFriend?.userName,
+                })}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {/* Friend Info Preview */}
+            <div className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50 mb-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-500">
+                <User className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-red-900 dark:text-red-100">
+                  {selectedFriend?.displayName || selectedFriend?.userName}
+                </p>
+                {selectedFriend?.userName && (
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    @{selectedFriend.userName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setRemoveDialogOpen(false)}
+                disabled={isRemoving}
+                className="flex-1 h-11 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+              >
+                {t("friends.card.cancel")}
+              </Button>
+              <Button
+                onClick={handleRemoveFriend}
+                disabled={isRemoving}
+                className="flex-1 h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-lg shadow-red-500/30"
+              >
+                {isRemoving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {t("friends.card.removing")}
+                  </>
+                ) : (
+                  <>
+                    <UserMinus className="h-4 w-4 mr-2" />
+                    {t("friends.card.remove")}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Camera Modal - extendMode preserves SignalR connection for time extension */}
+      <CameraModal open={isCameraOpen} onOpenChange={setIsCameraOpen} extendMode={true} />
     </DefaultLayout>
   );
 }

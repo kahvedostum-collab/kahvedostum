@@ -11,6 +11,8 @@ import {
   Clock,
   MessageSquare,
   MoreVertical,
+  Trash2,
+  UserCircle,
 } from "lucide-react";
 import { formatTime as formatTimeUtil, formatDateLong } from "@/utils/locale";
 import {
@@ -19,6 +21,12 @@ import {
   AvatarImage,
 } from "@/components/shacdn/avatar";
 import { Button } from "@/components/shacdn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/shacdn/dropdown-menu";
 import { Input } from "@/components/shacdn/input";
 import { ScrollArea } from "@/components/shacdn/scroll-area";
 import { Skeleton } from "@/components/shacdn/skeleton";
@@ -183,51 +191,68 @@ const ChatView = ({ conversation, onBack, fullScreen = false }) => {
   return (
     <div className={containerClass}>
       {/* Header */}
-      <div className="shrink-0 items-center justify-between gap-2 lg:gap-3 p-3 lg:p-4 border-b border-amber-100 dark:border-amber-900/50 bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800">
-        <div className="flex items-center gap-3">
+      <div className="shrink-0 flex items-center justify-between gap-2 lg:gap-3 p-2 sm:p-3 lg:p-4 border-b border-amber-100 dark:border-amber-900/50 bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+            className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30"
             aria-label={t("common.back") || "Geri"}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
-          <div className="relative">
-            <Avatar className="h-11 w-11 border-2 border-amber-200 dark:border-amber-700">
+          <div className="relative shrink-0">
+            <Avatar className="h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 border-2 border-amber-200 dark:border-amber-700">
               <AvatarImage
                 src={otherUser?.avatarUrl}
                 alt={otherUser?.displayName}
                 className="object-cover"
               />
-              <AvatarFallback className="bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-800 dark:text-amber-200 font-bold">
+              <AvatarFallback className="bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 text-amber-800 dark:text-amber-200 font-bold text-sm">
                 {getInitials(otherUser?.displayName || otherUser?.userName)}
               </AvatarFallback>
             </Avatar>
             <span
-              className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-zinc-900 ${
+              className={`absolute bottom-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 lg:h-3.5 lg:w-3.5 rounded-full border-2 border-white dark:border-zinc-900 ${
                 isOnline ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
               }`}
             />
           </div>
-          <div>
-            <p className="font-semibold text-amber-900 dark:text-amber-100">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100 truncate">
               {otherUser?.displayName || otherUser?.userName}
             </p>
-            <p className="text-xs text-amber-600 dark:text-amber-400">
+            <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400">
               {isOnline ? t("friends.chat.online") : t("friends.chat.offline")}
             </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
-          aria-label={t("common.moreOptions") || "Daha fazla seçenek"}
-        >
-          <MoreVertical className="h-5 w-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
+              aria-label={t("common.moreOptions") || "Daha fazla seçenek"}
+            >
+              <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-48 bg-white dark:bg-zinc-900 border-amber-200 dark:border-amber-800"
+          >
+            <DropdownMenuItem className="cursor-pointer text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/50">
+              <UserCircle className="h-4 w-4 mr-2" />
+              {t("friends.chat.viewProfile")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300">
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t("friends.chat.clearChat")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Messages */}

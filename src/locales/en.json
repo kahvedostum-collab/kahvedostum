@@ -171,6 +171,7 @@
       "uploading": "Uploading...",
       "processing": "Processing...",
       "done": "Receipt processed successfully!",
+      "timeExtended": "Time extended successfully!",
       "failed": "Receipt processing failed"
     },
     "error": {
@@ -404,7 +405,9 @@
       "today": "Today",
       "yesterday": "Yesterday",
       "sendError": "Failed to send message",
-      "noMessage": "No message"
+      "noMessage": "No message",
+      "viewProfile": "View Profile",
+      "clearChat": "Clear Chat"
     },
     "card": {
       "badge": "Coffee Buddy",

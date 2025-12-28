@@ -42,7 +42,7 @@ const CAFE_ID = 1;
 const DEFAULT_LAT = 41.0082;
 const DEFAULT_LNG = 28.9784;
 
-export function CameraModal({ open, onOpenChange }) {
+export function CameraModal({ open, onOpenChange, extendMode = false }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -78,6 +78,18 @@ export function CameraModal({ open, onOpenChange }) {
   // Check for active session when modal opens
   useEffect(() => {
     if (open) {
+      // extendMode: Skip active session warning, go directly to select
+      // User is already in CafeHub and wants to extend time
+      if (extendMode) {
+        // Store current session for reference but don't show warning
+        const currentSession = cafeState.cafeId && cafeState.expiresAt
+          ? { cafeId: cafeState.cafeId, channelKey: cafeState.channelKey, expiresAt: cafeState.expiresAt }
+          : loadCafeSession();
+        setActiveSession(currentSession);
+        setStep("select");
+        return;
+      }
+
       // Check Redux state first
       if (cafeState.cafeId && cafeState.expiresAt && !isSessionExpired({ expiresAt: cafeState.expiresAt })) {
         setActiveSession({
@@ -101,7 +113,7 @@ export function CameraModal({ open, onOpenChange }) {
       setStep("select");
       setActiveSession(null);
     }
-  }, [open, cafeState]);
+  }, [open, cafeState, extendMode]);
 
   // Handle "Return to Cafe" action
   const handleReturnToCafe = useCallback(() => {
@@ -277,15 +289,18 @@ export function CameraModal({ open, onOpenChange }) {
       setProcessingStatus(isSuccess ? "DONE" : (isFailed ? "FAILED" : msg.status));
 
       if (isSuccess) {
-        // Success - navigate to CafeUsers page
-        toast.success(t("camera.processing.done"));
+        // Success
+        toast.success(extendMode ? t("camera.processing.timeExtended") : t("camera.processing.done"));
 
-        // Stop SignalR connection
+        // Stop Receipt SignalR connection (not Cafe connection!)
         connectionRef.current?.stop();
         connectionRef.current = null;
 
         // Prepare session data - Backend'den gelen cafeId varsa onu kullan
-        const channelKey = receiptDataRef.current?.channelKey;
+        // extendMode'da mevcut channelKey'i kullan
+        const channelKey = extendMode && activeSession?.channelKey
+          ? activeSession.channelKey
+          : receiptDataRef.current?.channelKey;
 
         // Backend expiresAt göndermezse varsayılan 1 saat hesapla
         const defaultExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -293,7 +308,7 @@ export function CameraModal({ open, onOpenChange }) {
         const sessionData = {
           receiptId: msg.receiptId || receiptDataRef.current?.receiptId,
           expiresAt: msg.expiresAt || defaultExpiresAt,
-          cafeId: msg.cafeId || CAFE_ID,
+          cafeId: msg.cafeId || (extendMode && activeSession?.cafeId) || CAFE_ID,
           channelKey: channelKey,
         };
 
@@ -307,18 +322,23 @@ export function CameraModal({ open, onOpenChange }) {
         // Save session to Redux
         dispatch(setCafeSession(sessionData));
 
-        // Close modal and navigate with channelKey
+        // Close modal
         onOpenChange(false);
-        navigate(`/cafe/${channelKey}`, {
-          state: sessionData,
-        });
+
+        // extendMode: Don't navigate, user is already in CafeHub
+        // Cafe SignalR connection is preserved, only session time is updated
+        if (!extendMode) {
+          navigate(`/cafe/${channelKey}`, {
+            state: sessionData,
+          });
+        }
       } else if (isFailed) {
         setError(msg.rejectReason || t("camera.processing.failed"));
         setStep("error");
         toast.error(msg.rejectReason || t("camera.processing.failed"));
       }
     },
-    [navigate, onOpenChange, t, dispatch]
+    [navigate, onOpenChange, t, dispatch, extendMode, activeSession]
   );
 
   // Start receipt processing
@@ -959,6 +979,7 @@ ProcessingStep.propTypes = {
 CameraModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onOpenChange: PropTypes.func.isRequired,
+  extendMode: PropTypes.bool, // true when extending time from CafeHub (preserves SignalR connection)
 };
 
 export default CameraModal;

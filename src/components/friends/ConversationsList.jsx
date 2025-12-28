@@ -45,7 +45,7 @@ const ConversationsList = ({ conversations, isLoading, onSelect, activeId }) => 
 
   if (!conversations || conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center bg-linear-to-br from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl border border-amber-100 dark:border-amber-900/50">
+      <div className="h-full flex flex-col items-center justify-center py-16 text-center bg-linear-to-br from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl border border-amber-100 dark:border-amber-900/50">
         <div className="h-20 w-20 rounded-full bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-lg animate-bounce">
           <MessageCircle className="h-10 w-10 text-white" />
         </div>

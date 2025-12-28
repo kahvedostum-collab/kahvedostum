@@ -1,7 +1,18 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '@/services/axiosClient';
 
-// GET /api/Friends - Arkadaş listesini getir
+
+/* fetchFriends RESPONSE YAPISI
+***********************************/
+/*
+    {
+      "success": true,
+      "message": "Arkadaş listesi getirildi.",
+      "data": [],
+      "statusCode": 200
+    }
+*/
+
 export const fetchFriends = createAsyncThunk(
   'kahvedostumslice/fetchFriends',
   async (_, { rejectWithValue }) => {

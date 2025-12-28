@@ -20,7 +20,11 @@ const RequestCard = ({ request, type = "incoming" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [actionType, setActionType] = useState(null);
 
-  const user = type === "incoming" ? request.sender : request.receiver;
+  // API response yapısı: { requestId, fromUserId, fromUserName, fromUserEmail, ... }
+  // veya { requestId, toUserId, toUserName, toUserEmail, ... }
+  const user = type === "incoming"
+    ? { id: request.fromUserId, userName: request.fromUserName, email: request.fromUserEmail }
+    : { id: request.toUserId, userName: request.toUserName, email: request.toUserEmail };
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -53,7 +57,7 @@ const RequestCard = ({ request, type = "incoming" }) => {
     setActionType("accept");
     try {
       await dispatch(
-        respondToFriendRequest({ requestId: request.id, accept: true })
+        respondToFriendRequest({ requestId: request.requestId, accept: true })
       ).unwrap();
       toast.success(t("friends.requests.acceptedSuccess"));
     } catch (error) {
@@ -69,7 +73,7 @@ const RequestCard = ({ request, type = "incoming" }) => {
     setActionType("reject");
     try {
       await dispatch(
-        respondToFriendRequest({ requestId: request.id, accept: false })
+        respondToFriendRequest({ requestId: request.requestId, accept: false })
       ).unwrap();
       toast.info(t("friends.requests.rejectedInfo"));
     } catch (error) {
@@ -84,7 +88,7 @@ const RequestCard = ({ request, type = "incoming" }) => {
     setIsLoading(true);
     setActionType("cancel");
     try {
-      await dispatch(cancelFriendRequest(request.id)).unwrap();
+      await dispatch(cancelFriendRequest(request.requestId)).unwrap();
       toast.info(t("friends.requests.cancelledInfo"));
     } catch (error) {
       toast.error(error?.error?.message || "Bir hata oluştu");
